@@ -15,14 +15,11 @@
 
 
 /**
- * This file adds the settings pages to the navigation menu
+ * Web service template plugin related strings
  *
  * @package local_pfc
  * @copyright 2016, Duarte Mateus <2120189@my.ipleiria.pt>, Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die;
-
-require_once(dirname(__FILE__).'/lib.php');
-
+$string['pluginname'] = 'Calendar Fetcher';
