@@ -9,22 +9,34 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with Moodle.
  * If not, see <http://www.gnu.org/licenses/>.
- * ****************************************************************************//**
+ */
+
+/**
+ * [File Documentation]
  *
- *  [File Documentation]
- *
- * @package [Package Name]
+ * @package local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace local_pfc;
 
-$plugin->component = 'local_pfc';    // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_ALPHA;    // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->release = 'v0.0-a1';    // Human readable version name that should help to identify each release of the plugin
-$plugin->requires = 2014051200;    // Requires this Moodle version.
-$plugin->version = 2016050100;    // The current module version (Date: YYYYMMDDXX).
-$plugin->cron = 0;
+
+/**
+ * Class api_exception
+ *
+ * @category Class
+ * @package local_pfc
+ */
+class api_exception extends moodle_exception
+{
+    /**
+     * Constructor
+     * @param string $debuginfo Optional information to aid debugging
+     */
+    function __construct( $debuginfo = null) {
+        parent::__construct('apierror', 'local_pfc', '', '', $debuginfo);
+    }
+}
