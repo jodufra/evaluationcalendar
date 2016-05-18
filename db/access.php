@@ -9,11 +9,12 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with Moodle.
  * If not, see <http://www.gnu.org/licenses/>.
- * ****************************************************************************//**
+ */
+
+/**
+ * [File Documentation]
  *
- *  [File Documentation]
- *
- * @package [Package Name]
+ * @package local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
@@ -21,10 +22,21 @@
  */
 
 $capabilities = array(
+    'local/pfc:view' => array(
+        'captype' => 'read',
+        'contextlevel' => CONTEXT_MODULE,
+        'archetypes' => array(
+            'guest' => CAP_PROHIBIT,
+            'student' => CAP_PROHIBIT,
+            'teacher' => CAP_PROHIBIT,
+            'editingteacher' => CAP_PROHIBIT,
+            'manager' => CAP_ALLOW
+        )
+    ),
+
     'local/pfc:executesynchronization' => array(
         'riskbitmask'  => RISK_DATALOSS,
         'captype'      => 'write',
-        'contextlevel' => CONTEXT_SYSTEM,
         'archetypes'   => array(
             'student'        => CAP_PROHIBIT,
             'teacher'        => CAP_PROHIBIT,

@@ -9,19 +9,22 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with Moodle.
  * If not, see <http://www.gnu.org/licenses/>.
- * ****************************************************************************//**
- *
+ */
+
+/**
  * [File Documentation]
  *
- * @package [Package Name]
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc;
 defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot.'/local/pfc/classes/api_configuration.php');
+require_once($CFG->dirroot.'/local/pfc/classes/api_exception.php');
+require_once($CFG->dirroot.'/local/pfc/classes/api_object_serializer.php');
+require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');
 
 /**
  * 
@@ -29,46 +32,40 @@ defined('MOODLE_INTERNAL') || die();
  * @category Class
  * @package  local_pfc
  */
-class api_client
+class local_pfc_api_client
 {
 
     public static $GET = "GET";
-    public static $POST = "POST";
-    public static $PUT = "PUT";
-    public static $DELETE = "DELETE";
-    // public static $HEAD = "HEAD";
-    // public static $OPTIONS = "OPTIONS";
-    // public static $PATCH = "PATCH";
 
     /**
      * Api Configuration
-     * @var api_configuration
+     * @var local_pfc_api_configuration
      */
     protected $config;
 
     /**
      * Object Serializer
-     * @var api_object_serializer
+     * @var local_pfc_api_object_serializer
      */
     protected $serializer;
 
     /**
      * Constructor of the class
-     * @param api_configuration $config config for this ApiClient
+     * @param local_pfc_api_configuration $config config for this api_client
      */
-    public function __construct(api_configuration $config = null)
+    public function __construct(local_pfc_api_configuration $config = null)
     {
         if ($config == null) {
-            $config = api_configuration::getDefaultConfiguration();
+            $config = local_pfc_api_configuration::getDefaultConfiguration();
         }
 
         $this->config = $config;
-        $this->serializer = new api_object_serializer();
+        $this->serializer = new local_pfc_api_object_serializer();
     }
 
     /**
      * Get the config
-     * @return api_configuration
+     * @return local_pfc_api_configuration
      */
     public function getConfig()
     {
@@ -77,7 +74,7 @@ class api_client
 
     /**
      * Get the serializer
-     * @return api_object_serializer
+     * @return local_pfc_api_object_serializer
      */
     public function getSerializer()
     {
@@ -112,90 +109,49 @@ class api_client
      * @param string $resourcePath path to method endpoint
      * @param string $method       method to call
      * @param array  $queryParams  parameters to be place in query URL
-     * @param array  $postData     parameters to be placed in POST body
      * @param array  $headerParams parameters to be place in request header
      * @param string $responseType expected response type of the endpoint
-     * @throws \local_pfc\api_exception on a non 2xx response
+     * @throws \local_pfc_api_exception on a non 2xx response
      * @return mixed
      */
-    public function callApi($resourcePath, $method, $queryParams, $postData, $headerParams, $responseType = null)
+    public function callApi($resourcePath, $method, $queryParams, $headerParams, $responseType = null)
     {
 
-        $headers = array();
-
-        // construct the http header
-        $headerParams = array_merge(
-            (array)$this->config->getDefaultHeaders(),
-            (array)$headerParams
-        );
-
-        foreach ($headerParams as $key => $val) {
-            $headers[] = "$key: $val";
-        }
-
-        // form data
-        if ($postData and in_array('Content-Type: application/x-www-form-urlencoded', $headers)) {
-            $postData = http_build_query($postData);
-        } elseif ((is_object($postData) or is_array($postData)) and !in_array('Content-Type: multipart/form-data', $headers)) { // json model
-            $postData = json_encode(\local_pfc\api_object_serializer::sanitizeForSerialization($postData));
-        }
-
-        $url = $this->config->getHost() . $resourcePath;
-
         $curl = curl_init();
+
         // set timeout, if needed
         if ($this->config->getCurlTimeout() != 0) {
             curl_setopt($curl, CURLOPT_TIMEOUT, $this->config->getCurlTimeout());
         }
-        // return the result on success, rather than just true 
-        curl_setopt($curl, CURLOPT_RETURNTRANSFER, true);
 
+        // return the result on success, rather than just true 
+        curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
+
+        // construct the http header
+        $headers = array();
+        $headerParams = array_merge(
+            (array)$this->config->getDefaultHeaders(),
+            (array)$headerParams
+        );
+        foreach ($headerParams as $key => $val) {
+            $headers[] = $key.': '.$val;
+        }
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
-        // disable SSL verification, if needed
-        if ($this->config->getSSLVerification() == false) {
-            curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, 0);
-            curl_setopt($curl, CURLOPT_SSL_VERIFYHOST, 0);
+        // disable ssl verification
+        curl_setopt($curl, CURLOPT_SSL_VERIFYPEER, false);
+
+        // check if method is valid
+        if ($method != self::$GET) {
+            throw new local_pfc_api_exception('Method ' . $method . ' is not recognized.');
         }
 
-        if (! empty($queryParams)) {
+        // set url and query string
+        $url = $this->config->getHost() . $resourcePath;
+        if (!empty($queryParams)) {
             $url = ($url . '?' . http_build_query($queryParams));
         }
-
-        if ($method == self::$POST) {
-            curl_setopt($curl, CURLOPT_POST, true);
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        } elseif ($method == self::$HEAD) {
-            curl_setopt($curl, CURLOPT_NOBODY, true);
-        } elseif ($method == self::$OPTIONS) {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "OPTIONS");
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        } elseif ($method == self::$PATCH) {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PATCH");
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        } elseif ($method == self::$PUT) {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "PUT");
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        } elseif ($method == self::$DELETE) {
-            curl_setopt($curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-            curl_setopt($curl, CURLOPT_POSTFIELDS, $postData);
-        } elseif ($method != self::$GET) {
-            throw new api_exception('Method ' . $method . ' is not recognized.');
-        }
         curl_setopt($curl, CURLOPT_URL, $url);
-
-        // Set user agent
-        curl_setopt($curl, CURLOPT_USERAGENT, $this->config->getUserAgent());
-
-        // debugging for curl
-        if ($this->config->getDebug()) {
-            error_log("[DEBUG] HTTP Request body  ~BEGIN~\n".print_r($postData, true)."\n~END~\n", 3, $this->config->getDebugFile());
-
-            curl_setopt($curl, CURLOPT_VERBOSE, 1);
-            curl_setopt($curl, CURLOPT_STDERR, fopen($this->config->getDebugFile(), 'a'));
-        } else {
-            curl_setopt($curl, CURLOPT_VERBOSE, 0);
-        }
 
         // obtain the HTTP response headers
         curl_setopt($curl, CURLOPT_HEADER, 1);
@@ -206,37 +162,29 @@ class api_client
         $http_header = $this->http_parse_headers(substr($response, 0, $http_header_size));
         $http_body = substr($response, $http_header_size);
         $response_info = curl_getinfo($curl);
+        $errno = curl_errno ($curl);
+        curl_close($curl);
 
-        // debug HTTP response body
-        if ($this->config->getDebug()) {
-            error_log("[DEBUG] HTTP Response body ~BEGIN~\n".print_r($http_body, true)."\n~END~\n", 3, $this->config->getDebugFile());
+        if($errno){
+            throw new local_pfc_api_exception("cURL error number ".$errno, 0, null, null);
         }
 
         // Handle the response
         if ($response_info['http_code'] == 0) {
-            throw new api_exception("API call to $url timed out: ".serialize($response_info), 0, null, null);
+            throw new local_pfc_api_exception("API call to $url timed out", 0, null, null);
         } elseif ($response_info['http_code'] >= 200 && $response_info['http_code'] <= 299 ) {
-            // return raw body if response is a file
-            if ($responseType == '\SplFileObject' || $responseType == 'string') {
+            if ($responseType == 'string') {
                 return array($http_body, $response_info['http_code'], $http_header);
             }
-
-            $data = json_decode($http_body);
-            if (json_last_error() > 0) { // if response is a string
-                $data = $http_body;
-            }
+            $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
+            return array($data, $response_info['http_code'], $http_header);
         } else {
-            $data = json_decode($http_body);
-            if (json_last_error() > 0) { // if response is a string
-                $data = $http_body;
-            }
-
-            throw new api_exception(
+            $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
+            throw new local_pfc_api_exception(
                 "[".$response_info['http_code']."] Error connecting to the API ($url)",
                 $response_info['http_code'], $http_header, $data
             );
         }
-        return array($data, $response_info['http_code'], $http_header);
     }
 
     /**

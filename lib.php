@@ -9,30 +9,33 @@
  * See the GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License along with Moodle.
  * If not, see <http://www.gnu.org/licenses/>.
- * ****************************************************************************//**
+ */
+
+/**
+ * [File Documentation]
  *
- *  [File Documentation]
- *
- * @package [Package Name]
+ * @package local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
+defined('MOODLE_INTERNAL') || die();
+require_once($CFG->dirroot.'/local/pfc/classes/api/base_api.php');
+require_once($CFG->dirroot.'/local/pfc/classes/api/evaluation_api.php');
+
 /**
- * Returns the information if the module supports a feature
  *
- * @see plugin_supports() in lib/moodlelib.php
- * @param string $feature FEATURE_xx constant for requested feature
- * @return mixed true if the feature is supported, null if unknown
+ *
  */
-function pfc_supports($feature) {
-    switch($feature) {
-        case FEATURE_BACKUP_MOODLE2:
-            // return true if Moodle 2 backup/restore system is implemented.
-            return true;
-        default:
-            return null;
+function pfc_test_external_api() {
+    try{
+
+        $api = new \local_pfc\api\evaluation_api();
+        return implode('<br/>', $api->get_evaluations());
+    }catch (\local_pfc_api_exception $e){
+        return $e->getOriginalMessage();
     }
 }

@@ -14,29 +14,22 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc;
 
+require_once("../../config.php");
+require_once($CFG->dirroot.'/local/pfc/lib.php');
 
-/**
- * Class api_exception
- *
- * @category Class
- * @package local_pfc
- */
-class api_exception extends moodle_exception
-{
-    /**
-     * Constructor
-     * @param string $debuginfo Optional information to aid debugging
-     */
-    function __construct( $debuginfo = null) {
-        parent::__construct('apierror', 'local_pfc', '', '', $debuginfo);
-    }
-}
+require_login();
+$PAGE->set_context(context_system::instance());
+$PAGE->set_pagelayout('mydashboard');
+$PAGE->set_url('/local/pfc/index.php');
+$PAGE->set_title('My modules page title');
+$PAGE->set_heading('My modules page heading');
+
+echo pfc_test_external_api();
+
