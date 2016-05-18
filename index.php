@@ -1,15 +1,14 @@
 <?php
-/**
- * This file is part of a local Moodle plugin
- *
- * You can redistribute it and/or modify it under the terms of the  GNU General Public License
- * as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- * This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with Moodle.
- * If not, see <http://www.gnu.org/licenses/>.
- */
+// This file is part of a local Moodle plugin
+//
+// You can redistribute it and/or modify it under the terms of the  GNU General Public License 
+// as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with Moodle. 
+// If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * [File Documentation]
@@ -21,15 +20,29 @@
  */
 
 
-require_once("../../config.php");
-require_once($CFG->dirroot.'/local/pfc/lib.php');
+require_once(__DIR__ . '/../../config.php');
+require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->dirroot.'/local/pfc/locallib.php');
 
-require_login();
-$PAGE->set_context(context_system::instance());
-$PAGE->set_pagelayout('mydashboard');
-$PAGE->set_url('/local/pfc/index.php');
-$PAGE->set_title('My modules page title');
-$PAGE->set_heading('My modules page heading');
+$requestType = optional_param('requesttype', '', PARAM_TEXT);
 
-echo pfc_test_external_api();
+$pageParams = array();
+if ($requestType) {
+    $pageParams['requesttype'] = $requestType;
+}
+admin_externalpage_setup('local_pfc', '', $pageParams);
+
+
+$mform = new local_pfc_form(new moodle_url('/local/pfc/'));
+$mform->set_data((object)$pageParams);
+if ($data = $mform->get_data()) {
+    redirect(new moodle_url('/local/pfc/', $pageParams));
+}
+
+echo $OUTPUT->header();
+if($requestType){
+    echo local_pfc_test_api($requestType);
+}
+$mform->display();
+echo $OUTPUT->footer();
 

@@ -1,15 +1,14 @@
 <?php
-/**
- * This file is part of a local Moodle plugin
- *
- * You can redistribute it and/or modify it under the terms of the  GNU General Public License
- * as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
- * This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY;
- * without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
- * See the GNU General Public License for more details.
- * You should have received a copy of the GNU General Public License along with Moodle.
- * If not, see <http://www.gnu.org/licenses/>.
- */
+// This file is part of a local Moodle plugin
+//
+// You can redistribute it and/or modify it under the terms of the  GNU General Public License 
+// as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
+// This plugin is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; 
+// without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  
+// See the GNU General Public License for more details.
+//
+// You should have received a copy of the GNU General Public License along with Moodle. 
+// If not, see <http://www.gnu.org/licenses/>.
 
 /**
  * [File Documentation]
@@ -163,10 +162,11 @@ class local_pfc_api_client
         $http_body = substr($response, $http_header_size);
         $response_info = curl_getinfo($curl);
         $errno = curl_errno ($curl);
+        $errmsg = curl_error($curl);
         curl_close($curl);
 
         if($errno){
-            throw new local_pfc_api_exception("cURL error number ".$errno, 0, null, null);
+            throw new local_pfc_api_exception("cURL error [".$errno."] - ".$errmsg, 0, null, null);
         }
 
         // Handle the response
