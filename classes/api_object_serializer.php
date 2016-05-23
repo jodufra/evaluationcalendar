@@ -19,6 +19,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+
+namespace local_pfc;
 defined('MOODLE_INTERNAL') || die();
 
 
@@ -28,7 +30,7 @@ defined('MOODLE_INTERNAL') || die();
  * @category Class
  * @package local_pfc
  */
-class local_pfc_api_object_serializer
+class api_object_serializer
 {
 
     /**

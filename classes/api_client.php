@@ -19,11 +19,14 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_pfc;
+
 defined('MOODLE_INTERNAL') || die();
+/*
 require_once($CFG->dirroot.'/local/pfc/classes/api_configuration.php');
 require_once($CFG->dirroot.'/local/pfc/classes/api_exception.php');
 require_once($CFG->dirroot.'/local/pfc/classes/api_object_serializer.php');
-require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');
+require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');*/
 
 /**
  * 
@@ -31,40 +34,40 @@ require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');
  * @category Class
  * @package  local_pfc
  */
-class local_pfc_api_client
+class api_client
 {
 
     public static $GET = "GET";
 
     /**
      * Api Configuration
-     * @var local_pfc_api_configuration
+     * @var api_configuration
      */
     protected $config;
 
     /**
      * Object Serializer
-     * @var local_pfc_api_object_serializer
+     * @var api_object_serializer
      */
     protected $serializer;
 
     /**
      * Constructor of the class
-     * @param local_pfc_api_configuration $config config for this api_client
+     * @param api_configuration $config config for this api_client
      */
-    public function __construct(local_pfc_api_configuration $config = null)
+    public function __construct(api_configuration $config = null)
     {
         if ($config == null) {
-            $config = local_pfc_api_configuration::getDefaultConfiguration();
+            $config = api_configuration::getDefaultConfiguration();
         }
 
         $this->config = $config;
-        $this->serializer = new local_pfc_api_object_serializer();
+        $this->serializer = new api_object_serializer();
     }
 
     /**
      * Get the config
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function getConfig()
     {
@@ -73,7 +76,7 @@ class local_pfc_api_client
 
     /**
      * Get the serializer
-     * @return local_pfc_api_object_serializer
+     * @return api_object_serializer
      */
     public function getSerializer()
     {
@@ -110,7 +113,7 @@ class local_pfc_api_client
      * @param array  $queryParams  parameters to be place in query URL
      * @param array  $headerParams parameters to be place in request header
      * @param string $responseType expected response type of the endpoint
-     * @throws \local_pfc_api_exception on a non 2xx response
+     * @throws \api_exception on a non 2xx response
      * @return mixed
      */
     public function callApi($resourcePath, $method, $queryParams, $headerParams, $responseType = null)
@@ -142,7 +145,7 @@ class local_pfc_api_client
 
         // check if method is valid
         if ($method != self::$GET) {
-            throw new local_pfc_api_exception('Method ' . $method . ' is not recognized.');
+            throw new api_exception('Method ' . $method . ' is not recognized.');
         }
 
         // set url and query string
@@ -166,12 +169,12 @@ class local_pfc_api_client
         curl_close($curl);
 
         if($errno){
-            throw new local_pfc_api_exception("cURL error [".$errno."] - ".$errmsg, 0, null, null);
+            throw new api_exception("cURL error [".$errno."] - ".$errmsg, 0, null, null);
         }
 
         // Handle the response
         if ($response_info['http_code'] == 0) {
-            throw new local_pfc_api_exception("API call to $url timed out", 0, null, null);
+            throw new api_exception("API call to $url timed out", 0, null, null);
         } elseif ($response_info['http_code'] >= 200 && $response_info['http_code'] <= 299 ) {
             if ($responseType == 'string') {
                 return array($http_body, $response_info['http_code'], $http_header);
@@ -180,7 +183,7 @@ class local_pfc_api_client
             return array($data, $response_info['http_code'], $http_header);
         } else {
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
-            throw new local_pfc_api_exception(
+            throw new api_exception(
                 "[".$response_info['http_code']."] Error connecting to the API ($url)",
                 $response_info['http_code'], $http_header, $data
             );

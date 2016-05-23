@@ -22,7 +22,7 @@
 
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot.'/local/pfc/locallib.php');
+require_once($CFG->dirroot.'/local/pfc/lib.php');
 
 $requestType = optional_param('requesttype', '', PARAM_TEXT);
 
@@ -40,9 +40,9 @@ if ($data = $mform->get_data()) {
 }
 
 echo $OUTPUT->header();
-if($requestType){
-    echo local_pfc_test_api($requestType);
-}
 $mform->display();
+if($requestType){
+    echo local_pfc_make_api_request_to_html($requestType);
+}
 echo $OUTPUT->footer();
 

@@ -21,9 +21,9 @@
  */
 
 namespace local_pfc\api;
-require_once($CFG->dirroot.'/local/pfc/classes/api/base_api.php');
-require_once($CFG->dirroot.'/local/pfc/classes/api_client.php');
-require_once($CFG->dirroot.'/local/pfc/classes/api_exception.php');
+use local_pfc\api_client;
+use local_pfc\api_exception;
+use local_pfc\models\evaluation;
 
 
 /**
@@ -36,6 +36,12 @@ class evaluation_api extends base_api
 {
 
     /**
+     * Class path of the returning model of the api
+     * @var string
+     */
+    private static $_model = '\local_pfc\models\evaluation';
+
+    /**
      * Possible url API paths
      * @var array
      */
@@ -46,7 +52,7 @@ class evaluation_api extends base_api
 
     /**
      * Constructor
-     * @param \local_pfc_api_client |null $apiClient The api client to use
+     * @param api_client |null $apiClient The api client to use
      */
     function __construct($apiClient = null)
     {
@@ -61,8 +67,8 @@ class evaluation_api extends base_api
      * @param string $q Permite efetuar uma pesquisa global sobre varios campos (optional)
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
-     * @return \local_pfc\models\evaluation[]
-     * @throws \local_pfc_api_exception on non-2xx response
+     * @return evaluation[]
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluations($q = null, $fields = null, $sort = null)
     {
@@ -78,7 +84,7 @@ class evaluation_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
-     * @throws \local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null)
     {
@@ -102,8 +108,8 @@ class evaluation_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, \local_pfc_api_client::$GET, $queryParams, '\local_pfc\models\evaluation[]');
-        } catch (\local_pfc_api_exception $e) {
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+        } catch (api_exception $e) {
             throw $e;
         }
     }
@@ -114,8 +120,8 @@ class evaluation_api extends base_api
      * Devolve uma lista de avaliações consoante a lista de códigos de Unidades Curriculares.
      *
      * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
-     * @return \local_pfc\models\evaluation[]
-     * @throws \local_pfc_api_exception on non-2xx response
+     * @return evaluation[]
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluations_from_ucs($uc_list)
     {
@@ -129,14 +135,14 @@ class evaluation_api extends base_api
      *
      * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
-     * @throws \local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluations_form_ucs_with_http_info($uc_list)
     {
 
         // verify the required parameter 'uc_list' is set
         if ($uc_list === null) {
-            throw new \local_pfc_api_exception('Missing the required parameter $uc_list when calling evaluations_get');
+            throw new api_exception('Missing the required parameter $uc_list when calling evaluations_get');
         }
 
         // parse inputs
@@ -153,11 +159,10 @@ class evaluation_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, \local_pfc_api_client::$GET, $queryParams, '\local_pfc\models\evaluation[]');
-        } catch (\local_pfc_api_exception $e) {
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+        } catch (api_exception $e) {
             throw $e;
         }
     }
-
 
 }

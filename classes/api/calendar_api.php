@@ -21,8 +21,8 @@
  */
 
 namespace local_pfc\api;
-use local_pfc_api_client;
-use local_pfc_api_exception;
+use local_pfc\api_client;
+use local_pfc\api_exception;
 use local_pfc\models\calendar;
 
 
@@ -34,6 +34,12 @@ use local_pfc\models\calendar;
  */
 class calendar_api extends base_api
 {
+    
+    /**
+     * Class path of the returning model of the api
+     * @var string
+     */
+    private static $_model = '\local_pfc\models\calendar';
 
     /**
      * Possible url API paths
@@ -45,7 +51,7 @@ class calendar_api extends base_api
 
     /**
      * Constructor
-     * @param local_pfc_api_client |null $apiClient The api client to use
+     * @param api_client |null $apiClient The api client to use
      */
     function __construct($apiClient = null)
     {
@@ -60,7 +66,7 @@ class calendar_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return calendar[]
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_calendars($q = null, $fields = null, $sort = null)
     {
@@ -77,7 +83,7 @@ class calendar_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return array calendar[], HTTP status code, HTTP response headers (array of strings)
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_calendars_with_http_info($q = null, $fields = null, $sort = null)
     {
@@ -102,8 +108,8 @@ class calendar_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, local_pfc_api_client::$GET, $queryParams, '\local_pfc\models\calendar[]');
-        } catch (local_pfc_api_exception $e) {
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+        } catch (api_exception $e) {
             throw $e;
         }
     }

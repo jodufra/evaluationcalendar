@@ -21,9 +21,9 @@
  */
 
 namespace local_pfc\api;
-use local_pfc_api_client;
-use local_pfc_api_object_serializer;
-use local_pfc_api_exception;
+use local_pfc\api_client;
+use local_pfc\api_exception;
+use local_pfc\api_object_serializer;
 
 
 /**
@@ -37,18 +37,18 @@ class base_api
 
     /**
      * API Client
-     * @var \local_pfc_api_client instance of the api_client
+     * @var api_client instance of the api_client
      */
     protected $apiClient;
 
     /**
      * Constructor
-     * @param \local_pfc_api_client|null $apiClient The api client to use
+     * @param api_client|null $apiClient The api client to use
      */
     function __construct($apiClient = null)
     {
         if ($apiClient == null) {
-            $apiClient = new local_pfc_api_client();
+            $apiClient = new api_client();
             $apiClient->getConfig()->setHost('https://apis.ipleiria.pt/dev/calendarios-avaliacoes/v1');
         }
 
@@ -57,7 +57,7 @@ class base_api
 
     /**
      * Get API client
-     * @return \local_pfc_api_client get the API client
+     * @return api_client get the API client
      */
     public function getApiClient()
     {
@@ -66,10 +66,10 @@ class base_api
 
     /**
      * Set the API client
-     * @param \local_pfc_api_client $apiClient set the API client
+     * @param api_client $apiClient set the API client
      * @return base_api
      */
-    public function setApiClient(local_pfc_api_client $apiClient)
+    public function setApiClient(api_client $apiClient)
     {
         $this->apiClient = $apiClient;
         return $this;
@@ -77,11 +77,11 @@ class base_api
 
 
     public function callApiClient($resourcePath, $method, $queryParams, $responseType){
-        $_header_accept = local_pfc_api_client::selectHeaderAccept(array('application/json'));
+        $_header_accept = api_client::selectHeaderAccept(array('application/json'));
         if (!is_null($_header_accept)) {
             $headerParams['Accept'] = $_header_accept;
         }
-        $headerParams['Content-Type'] = local_pfc_api_client::selectHeaderContentType(array());
+        $headerParams['Content-Type'] = api_client::selectHeaderContentType(array());
 
         try {
             list($response, $statusCode, $httpHeader) = $this->apiClient->callApi(
@@ -93,19 +93,19 @@ class base_api
                 return array(null, $statusCode, $httpHeader);
             }
 
-            $response_obj = local_pfc_api_object_serializer::deserialize($response->data, $responseType, null);
+            $response_obj = api_object_serializer::deserialize($response->data, $responseType, null);
             return array($response_obj, $statusCode, $httpHeader);
 
-        } catch (local_pfc_api_exception $e) {
+        } catch (api_exception $e) {
             $response = $e->getResponseBody();
             $httpHeader = $e->getResponseHeaders();
             switch ($e->getCode()) {
                 case 200:
-                    $data = local_pfc_api_object_serializer::deserialize($response->data, $responseType, null);
+                    $data = api_object_serializer::deserialize($response->data, $responseType, null);
                     $e->setResponseObject($data);
                     break;
                 case 500:
-                    $data = local_pfc_api_object_serializer::deserialize($response, '\local_pfc\models\error', null);
+                    $data = api_object_serializer::deserialize($response, 'models\error', null);
                     $e->setResponseObject($data);
                     break;
             }

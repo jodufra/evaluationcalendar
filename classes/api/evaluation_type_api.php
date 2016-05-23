@@ -21,8 +21,8 @@
  */
 
 namespace local_pfc\api;
-use local_pfc_api_client;
-use local_pfc_api_exception;
+use local_pfc\api_client;
+use local_pfc\api_exception;
 use local_pfc\models\evaluation_type;
 
 
@@ -36,6 +36,12 @@ class evaluation_type_api extends base_api
 {
 
     /**
+     * Class path of the returning model of the api
+     * @var string
+     */
+    private static $_model = '\local_pfc\models\evaluation';
+
+    /**
      * Possible url API paths
      * @var array
      */
@@ -46,7 +52,7 @@ class evaluation_type_api extends base_api
 
     /**
      * Constructor
-     * @param local_pfc_api_client |null $apiClient The api client to use
+     * @param api_client |null $apiClient The api client to use
      */
     function __construct($apiClient = null)
     {
@@ -61,7 +67,7 @@ class evaluation_type_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return evaluation_type[]
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluation_types($fields = null, $sort = null)
     {
@@ -76,7 +82,7 @@ class evaluation_type_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return array of evaluation_type[], HTTP status code, HTTP response headers (array of strings)
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluation_types_with_http_info($fields = null, $sort = null)
     {
@@ -98,8 +104,8 @@ class evaluation_type_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, local_pfc_api_client::$GET, $queryParams, '\local_pfc\models\evaluation_type[]');
-        } catch (local_pfc_api_exception $e) {
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+        } catch (api_exception $e) {
             throw $e;
         }
     }
@@ -113,7 +119,7 @@ class evaluation_type_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return evaluation_type[]
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluation_type($id_evaluation_type, $fields = null, $sort = null)
     {
@@ -130,14 +136,14 @@ class evaluation_type_api extends base_api
      * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
      * @param string $sort Permite ordenar os resultados por atributo (optional)
      * @return array of evaluation_type[], HTTP status code, HTTP response headers (array of strings)
-     * @throws local_pfc_api_exception on non-2xx response
+     * @throws api_exception on non-2xx response
      */
     public function get_evaluation_type_with_http_info($id_evaluation_type, $fields = null, $sort = null)
     {
 
         // verify the required parameter 'id_tipo_avaliacao' is set
         if ($id_evaluation_type === null) {
-            throw new local_pfc_api_exception('Missing the required parameter $id_evaluation_type when calling get_evaluation_type');
+            throw new api_exception('Missing the required parameter $id_evaluation_type when calling get_evaluation_type');
         }
 
         // parse inputs
@@ -161,8 +167,8 @@ class evaluation_type_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, local_pfc_api_client::$GET, $queryParams, '\local_pfc\models\evaluation_type[]');
-        } catch (local_pfc_api_exception $e) {
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+        } catch (api_exception $e) {
             throw $e;
         }
     }

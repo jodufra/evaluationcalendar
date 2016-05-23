@@ -21,7 +21,7 @@
  */
 
 namespace local_pfc\models;
-use local_pfc\api_exception;
+use \local_pfc\api_exception;
 
 
 /**

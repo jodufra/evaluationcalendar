@@ -19,6 +19,8 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_pfc;
+
 defined('MOODLE_INTERNAL') || die();
 
 /**
@@ -27,7 +29,7 @@ defined('MOODLE_INTERNAL') || die();
  * @category Class
  * @package  local_pfc
  */
-class local_pfc_api_configuration
+class api_configuration
 {
 
     /**
@@ -50,12 +52,12 @@ class local_pfc_api_configuration
     /**
      * Gets the default configuration instance
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public static function getDefaultConfiguration()
     {
         if (self::$_defaultConfiguration == null) {
-            self::$_defaultConfiguration = new local_pfc_api_configuration();
+            self::$_defaultConfiguration = new api_configuration();
             self::$_defaultConfiguration->defaultHeaders = self::$_defaultAuthorizationHeader;
             self::$_defaultConfiguration->host = self::$_defaultHost;
         }
@@ -66,11 +68,11 @@ class local_pfc_api_configuration
     /**
      * Sets the detault configuration instance
      *
-     * @param local_pfc_api_configuration $config An instance of the Configuration Object
+     * @param api_configuration $config An instance of the Configuration Object
      *
      * @return void
      */
-    public static function setDefaultConfiguration(local_pfc_api_configuration $config)
+    public static function setDefaultConfiguration(api_configuration $config)
     {
         self::$_defaultConfiguration = $config;
     }
@@ -124,7 +126,7 @@ class local_pfc_api_configuration
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
      * @param string $key              API key or token
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function setApiKey($apiKeyIdentifier, $key)
     {
@@ -150,7 +152,7 @@ class local_pfc_api_configuration
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
      * @param string $prefix           API key prefix, e.g. Bearer
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function setApiKeyPrefix($apiKeyIdentifier, $prefix)
     {
@@ -175,7 +177,7 @@ class local_pfc_api_configuration
      *
      * @param string $accessToken Token for OAuth
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function setAccessToken($accessToken)
     {
@@ -189,7 +191,7 @@ class local_pfc_api_configuration
      * @param string $headerName  header name (e.g. Token)
      * @param string $headerValue header value (e.g. 1z8wp3)
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function addDefaultHeader($headerName, $headerValue)
     {
@@ -216,7 +218,7 @@ class local_pfc_api_configuration
      *
      * @param string $headerName the header to delete
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function deleteDefaultHeader($headerName)
     {
@@ -228,7 +230,7 @@ class local_pfc_api_configuration
      *
      * @param string $host Host
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function setHost($host)
     {
@@ -251,7 +253,7 @@ class local_pfc_api_configuration
      *
      * @param integer $seconds Number of seconds before timing out [set to 0 for no timeout]
      *
-     * @return local_pfc_api_configuration
+     * @return api_configuration
      */
     public function setCurlTimeout($seconds)
     {

@@ -23,7 +23,7 @@
 namespace local_pfc\models;
 
 use \ArrayAccess;
-require_once($CFG->dirroot.'/local/pfc/classes/api_object_serializer.php');
+use \local_pfc\api_object_serializer;
 
 /**
  * Class base_model
@@ -102,9 +102,9 @@ abstract class base_model implements ArrayAccess
     public function __toString()
     {
         if (defined('JSON_PRETTY_PRINT')) {
-            return json_encode(\local_pfc_api_object_serializer::sanitizeForSerialization($this), JSON_PRETTY_PRINT);
+            return json_encode(api_object_serializer::sanitizeForSerialization($this), JSON_PRETTY_PRINT);
         } else {
-            return json_encode(\local_pfc_api_object_serializer::sanitizeForSerialization($this));
+            return json_encode(api_object_serializer::sanitizeForSerialization($this));
         }
     }
 }

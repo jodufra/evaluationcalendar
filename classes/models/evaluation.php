@@ -21,7 +21,7 @@
  */
 
 namespace local_pfc\models;
-require_once($CFG->dirroot.'/local/pfc/classes/models/base_model.php');
+use \local_pfc\api_exception;
 
 
 /**
@@ -312,13 +312,13 @@ class evaluation extends base_model
      * Sets local 
      * @param string $local Local da Avaliação (SALADEAULA|NAOSEAPLICA|OUTROLOCAL).
      * @return $this
-     * @throws \local_pfc_api_exception When $local different then allowed values
+     * @throws api_exception When $local different then allowed values
      */
     public function setLocal($local)
     {
         $allowed_values = array("SALADEAULA", "NAOSEAPLICA", "OUTROLOCAL");
         if (!in_array($local, $allowed_values)) {
-            throw new \local_pfc_api_exception("Invalid value for 'local', must be one of 'SALADEAULA', 'NAOSEAPLICA', 'OUTROLOCAL'");
+            throw new api_exception("Invalid value for 'local', must be one of 'SALADEAULA', 'NAOSEAPLICA', 'OUTROLOCAL'");
         }
         $this->local = $local;
         return $this;
