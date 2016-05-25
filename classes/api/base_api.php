@@ -34,6 +34,11 @@ use local_pfc\api_object_serializer;
  */
 class base_api
 {
+    /**
+     * Class path of the returning model of the api
+     * @var string
+     */
+    private static $_error_model = '\local_pfc\models\error';
 
     /**
      * API Client
@@ -93,21 +98,36 @@ class base_api
                 return array(null, $statusCode, $httpHeader);
             }
 
-            $response_obj = api_object_serializer::deserialize($response->data, $responseType, null);
+            if(is_string ($response) &&
+                strcasecmp(substr($response, 0, 1), '{') == 0 &&
+                strcasecmp(substr($response, -1), '}') == 0 ){
+                $response = json_decode($response);
+            }
+
+            if(is_string ($response)){
+                $response_obj = $response;
+            }  else{
+                $response_obj = api_object_serializer::deserialize($response->data, $responseType, null);
+            }
+
             return array($response_obj, $statusCode, $httpHeader);
 
-        } catch (api_exception $e) {
-            $response = $e->getResponseBody();
-            $httpHeader = $e->getResponseHeaders();
-            switch ($e->getCode()) {
-                case 200:
-                    $data = api_object_serializer::deserialize($response->data, $responseType, null);
-                    $e->setResponseObject($data);
-                    break;
-                case 500:
-                    $data = api_object_serializer::deserialize($response, 'models\error', null);
-                    $e->setResponseObject($data);
-                    break;
+        } catch (\Exception $e) {
+            if ($e instanceof api_exception) {
+                $response = $e->getResponseBody();
+                if(is_string ($response) &&
+                    strcasecmp(substr($response, 0, 1), '{') == 0 &&
+                    strcasecmp(substr($response, -1), '}') == 0 ){
+                    $response = json_decode($response);
+                }
+                if(is_string ($response)){
+                    $data = $response;
+                }  else{
+                    $data = api_object_serializer::deserialize($response, self::$_error_model, null);
+                }
+                $e->setResponseObject($data);
+            } else {
+                $e = new api_exception($e->getMessage(), 500);
             }
             throw $e;
         }

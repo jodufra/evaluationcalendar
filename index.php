@@ -19,28 +19,30 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot.'/local/pfc/lib.php');
+require_once($CFG->dirroot . '/local/pfc/lib.php');
 
+// Gets query data
 $requestType = optional_param('requesttype', '', PARAM_TEXT);
-
 $pageParams = array();
 if ($requestType) {
     $pageParams['requesttype'] = $requestType;
 }
+
+// Initialize admin page
 admin_externalpage_setup('local_pfc', '', $pageParams);
 
-
-$mform = new local_pfc_form(new moodle_url('/local/pfc/'));
-$mform->set_data((object)$pageParams);
-if ($data = $mform->get_data()) {
+// Prepares the form and checks if given data is valid
+$pfc_form = new local_pfc_form(new moodle_url('/local/pfc/'));
+$pfc_form->set_data((object) $pageParams);
+if ($data = $pfc_form->get_data()) {
     redirect(new moodle_url('/local/pfc/', $pageParams));
 }
 
+// Print page
 echo $OUTPUT->header();
-$mform->display();
+$pfc_form->display();
 if($requestType){
     echo local_pfc_make_api_request_to_html($requestType);
 }

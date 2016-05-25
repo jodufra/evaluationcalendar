@@ -211,42 +211,36 @@ class api_object_serializer
     public static function deserialize($data, $class, $discriminator=null)
     {
         if (null === $data) {
-            $deserialized = null;
+            $result = null;
         } elseif (substr($class, 0, 4) === 'map[') { // for associative array e.g. map[string,int]
             $inner = substr($class, 4, -1);
-            $deserialized = array();
+            $result = array();
             if (strrpos($inner, ",") !== false) {
                 $subClass_array = explode(',', $inner, 2);
                 $subClass = $subClass_array[1];
                 foreach ($data as $key => $value) {
-                    $deserialized[$key] = self::deserialize($value, $subClass, $discriminator);
+                    $result[$key] = self::deserialize($value, $subClass, $discriminator);
                 }
             }
+        } elseif ($class === 'object') {
+            settype($data, 'array');
+            $result = $data;
+        } elseif ($class === '\DateTime') {
+            if (!empty($data)) {
+                $result = new \DateTime($data);
+            } else {
+                $result = null;
+            }
+        } elseif (in_array($class, array('void', 'bool', 'string', 'double', 'byte', 'mixed', 'integer', 'float', 'int', 'DateTime', 'number', 'boolean', 'object'))) {
+            settype($data, $class);
+            $result = $data;
         } elseif (strcasecmp(substr($class, -2), '[]') == 0) {
             $subClass = substr($class, 0, -2);
             $values = array();
             foreach ($data as $key => $value) {
                 $values[] = self::deserialize($value, $subClass, $discriminator);
             }
-            $deserialized = $values;
-        } elseif ($class === 'object') {
-            settype($data, 'array');
-            $deserialized = $data;
-        } elseif ($class === '\DateTime') {
-            // Some API's return an invalid, empty string as a
-            // date-time property. DateTime::__construct() will return
-            // the current time for empty input which is probably not
-            // what is meant. The invalid empty string is probably to
-            // be interpreted as a missing field/value. Let's handle
-            // this graceful.
-            if (!empty($data)) {
-                $deserialized = new \DateTime($data);
-            } else {
-                $deserialized = null;
-            }
-        } elseif (in_array($class, array('void', 'bool', 'string', 'double', 'byte', 'mixed', 'integer', 'float', 'int', 'DateTime', 'number', 'boolean', 'object'))) {
-            settype($data, $class);
-            $deserialized = $data;
+            $result = $values;
         } else {
             if (!empty($discriminator) && isset($data->{$discriminator}) && is_string($data->{$discriminator})) {
                 $subclass = '\local_pfc\models\\' . $data->{$discriminator};
@@ -267,9 +261,9 @@ class api_object_serializer
                     $instance->$propertySetter(self::deserialize($propertyValue, $type, $discriminator));
                 }
             }
-            $deserialized = $instance;
+            $result = $instance;
         }
 
-        return $deserialized;
+        return $result;
     }
 }

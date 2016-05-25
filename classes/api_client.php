@@ -113,7 +113,7 @@ class api_client
      * @param array  $queryParams  parameters to be place in query URL
      * @param array  $headerParams parameters to be place in request header
      * @param string $responseType expected response type of the endpoint
-     * @throws \api_exception on a non 2xx response
+     * @throws api_exception on a non 2xx response
      * @return mixed
      */
     public function callApi($resourcePath, $method, $queryParams, $headerParams, $responseType = null)
@@ -145,7 +145,7 @@ class api_client
 
         // check if method is valid
         if ($method != self::$GET) {
-            throw new api_exception('Method ' . $method . ' is not recognized.');
+            throw new api_exception("Method $method is not recognized.");
         }
 
         // set url and query string
@@ -164,28 +164,30 @@ class api_client
         $http_header = $this->http_parse_headers(substr($response, 0, $http_header_size));
         $http_body = substr($response, $http_header_size);
         $response_info = curl_getinfo($curl);
-        $errno = curl_errno ($curl);
-        $errmsg = curl_error($curl);
+        $error_num = curl_errno ($curl);
+        $error_msg = curl_error($curl);
         curl_close($curl);
 
-        if($errno){
-            throw new api_exception("cURL error [".$errno."] - ".$errmsg, 0, null, null);
+        if($error_num){
+            throw new api_exception("[$error_num] - cURL error: $error_msg", 0, null, null);
         }
 
         // Handle the response
-        if ($response_info['http_code'] == 0) {
+        $http_code = $response_info['http_code'];
+        if ($http_code == 0) {
             throw new api_exception("API call to $url timed out", 0, null, null);
-        } elseif ($response_info['http_code'] >= 200 && $response_info['http_code'] <= 299 ) {
+        }
+        elseif ($http_code >= 200 && $http_code <= 299 ) {
             if ($responseType == 'string') {
-                return array($http_body, $response_info['http_code'], $http_header);
+                return array($http_body, $http_code, $http_header);
             }
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
-            return array($data, $response_info['http_code'], $http_header);
-        } else {
+            return array($data, $http_code, $http_header);
+        }
+        else {
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
             throw new api_exception(
-                "[".$response_info['http_code']."] Error connecting to the API ($url)",
-                $response_info['http_code'], $http_header, $data
+                "[$http_code] Error connecting to the API ($url)", $http_code, $http_header, $data
             );
         }
     }

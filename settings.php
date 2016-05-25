@@ -25,6 +25,5 @@ defined('MOODLE_INTERNAL') || die;
 
 if ($hassiteconfig) { // Needs this condition or there is error on login page.
     $ADMIN->add('development', new admin_externalpage('local_pfc',
-        get_string('pluginname', 'local_pfc'),
-        new moodle_url('/local/pfc/index.php')));
+        get_string('pluginname', 'local_pfc'), new moodle_url('/local/pfc/index.php')));
 }

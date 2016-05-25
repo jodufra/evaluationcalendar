@@ -173,19 +173,6 @@ class api_configuration
     }
 
     /**
-     * Sets the access token for OAuth
-     *
-     * @param string $accessToken Token for OAuth
-     *
-     * @return api_configuration
-     */
-    public function setAccessToken($accessToken)
-    {
-        $this->accessToken = $accessToken;
-        return $this;
-    }
-
-    /**
      * Adds a default header
      *
      * @param string $headerName  header name (e.g. Token)
