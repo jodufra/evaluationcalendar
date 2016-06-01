@@ -25,26 +25,41 @@ require_once($CFG->dirroot . '/local/pfc/lib.php');
 
 // Gets query data
 $requestType = optional_param('requesttype', '', PARAM_TEXT);
+$synchronize = optional_param('synchronize', '', PARAM_TEXT);
 $pageParams = array();
 if ($requestType) {
     $pageParams['requesttype'] = $requestType;
+}
+if ($synchronize) {
+    $pageParams['synchronize'] = $synchronize;
 }
 
 // Initialize admin page
 admin_externalpage_setup('local_pfc', '', $pageParams);
 
 // Prepares the form and checks if given data is valid
-$pfc_form = new local_pfc_form(new moodle_url('/local/pfc/'));
-$pfc_form->set_data((object) $pageParams);
-if ($data = $pfc_form->get_data()) {
+$check_api_form = new local_pfc_check_api_form(new moodle_url('/local/pfc/'));
+$check_api_form->set_data((object) $pageParams);
+if ($data = $check_api_form->get_data()) {
+    redirect(new moodle_url('/local/pfc/', $pageParams));
+}
+
+$synchronize_calendars_form = new local_pfc_synchronize_calendars_form(new moodle_url('/local/pfc/'));
+$synchronize_calendars_form->set_data((object) $pageParams);
+if ($data = $synchronize_calendars_form->get_data()) {
     redirect(new moodle_url('/local/pfc/', $pageParams));
 }
 
 // Print page
+$pfc = new local_pfc();
 echo $OUTPUT->header();
-$pfc_form->display();
+$check_api_form->display();
+$synchronize_calendars_form->display();
 if($requestType){
-    echo local_pfc_make_api_request_to_html($requestType);
+    echo $pfc->make_api_request_to_html($requestType);
+}
+if($synchronize){
+    echo $pfc->synchronize_evaluation_calendars_to_hmtl();
 }
 echo $OUTPUT->footer();
 
