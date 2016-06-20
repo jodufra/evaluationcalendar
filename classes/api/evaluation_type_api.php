@@ -42,15 +42,6 @@ class evaluation_type_api extends base_api
     private static $_model = '\local_pfc\models\evaluation';
 
     /**
-     * Possible url API paths
-     * @var array
-     */
-    private static $paths = array(
-        'evaluation_types' => '/tipos-avaliacao',
-        'evaluation_type' => '/tipos-avaliacao/{idTipoAvaliacao}'
-    );
-
-    /**
      * Constructor
      * @param api_client |null $apiClient The api client to use
      */
@@ -88,7 +79,7 @@ class evaluation_type_api extends base_api
     {
 
         // parse inputs
-        $resourcePath = self::$paths['evaluation_types'];
+        $resourcePath = \local_pfc_config::$API_PATHS['evaluation_types'];
         $queryParams = array();
 
         // query params
@@ -147,7 +138,7 @@ class evaluation_type_api extends base_api
         }
 
         // parse inputs
-        $resourcePath = self::$paths['evaluation_type'];
+        $resourcePath = \local_pfc_config::$API_PATHS['evaluation_type'];
         $queryParams = array();
 
         // query params

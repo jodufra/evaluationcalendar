@@ -42,14 +42,6 @@ class calendar_api extends base_api
     private static $_model = '\local_pfc\models\calendar';
 
     /**
-     * Possible url API paths
-     * @var array
-     */
-    private static $paths = array(
-        'calendars' => '/calendarios'
-    );
-
-    /**
      * Constructor
      * @param api_client |null $apiClient The api client to use
      */
@@ -89,7 +81,7 @@ class calendar_api extends base_api
     {
         
         // parse inputs
-        $resourcePath = self::$paths['calendars'];
+        $resourcePath = \local_pfc_config::$API_PATHS['calendars'];
         $queryParams = array();
 
         // query params

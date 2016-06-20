@@ -18,7 +18,7 @@
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
+global $CFG, $OUTPUT;
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/local/pfc/lib.php');
@@ -51,15 +51,17 @@ if ($data = $synchronize_calendars_form->get_data()) {
 }
 
 // Print page
-$pfc = new local_pfc();
 echo $OUTPUT->header();
 $check_api_form->display();
 $synchronize_calendars_form->display();
-if($requestType){
-    echo $pfc->make_api_request_to_html($requestType);
-}
-if($synchronize){
-    echo $pfc->synchronize_evaluation_calendars_to_hmtl();
+if($requestType || $synchronize){
+    $pfc = new local_pfc(true);
+    if($requestType){
+        echo $pfc->check_api_interface($requestType);
+    }
+    if($synchronize){
+        echo $pfc->synchronize_evaluation_calendars();
+    }
 }
 echo $OUTPUT->footer();
 

@@ -31,19 +31,6 @@ defined('MOODLE_INTERNAL') || die();
  */
 class api_configuration
 {
-
-    /**
-     * Default authorization header
-     */
-    private static $_defaultAuthorizationHeader = array(
-        'Authorization' => 'Bearer 00ef34c7f062fdb0fa77dcec86db445c'
-    );
-
-    /**
-     * Default api host
-     */
-    private static $_defaultHost = 'https://apis.ipleiria.pt/dev/calendarios-avaliacoes/v1';
-
     /**
      * Default configuration instance
      */
@@ -58,8 +45,8 @@ class api_configuration
     {
         if (self::$_defaultConfiguration == null) {
             self::$_defaultConfiguration = new api_configuration();
-            self::$_defaultConfiguration->defaultHeaders = self::$_defaultAuthorizationHeader;
-            self::$_defaultConfiguration->host = self::$_defaultHost;
+            self::$_defaultConfiguration->defaultHeaders = \local_pfc_config::$API_AUTHORIZATION_HEADER;
+            self::$_defaultConfiguration->host = \local_pfc_config::API_HOST;
         }
 
         return self::$_defaultConfiguration;

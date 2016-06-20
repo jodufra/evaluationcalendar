@@ -54,7 +54,6 @@ class base_api
     {
         if ($apiClient == null) {
             $apiClient = new api_client();
-            $apiClient->getConfig()->setHost('https://apis.ipleiria.pt/dev/calendarios-avaliacoes/v1');
         }
 
         $this->apiClient = $apiClient;
