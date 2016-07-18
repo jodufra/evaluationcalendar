@@ -96,21 +96,6 @@ class local_pfc_synchronize_calendars_form extends moodleform {
 final class local_pfc_config{
 
     /**
-     * API identity provider url
-     */
-    const API_IDENTITY_PROVIDER_URL = 'https://identity.ipleiria.pt/oauth2client/';
-
-    /**
-     * API identity client id
-     */
-    const API_CLIENT_ID = 'MvWKAiPH4frMNavrW3N7Pg2P5Joa';
-
-    /**
-     * API identity client secret
-     */
-    const API_CLIENT_SECRET = 'BtwsC6XIgSrT1HXeEfdfT8jiGowa';
-
-    /**
      * API authorization header
      */
     public static $API_AUTHORIZATION_HEADER = array('Authorization' => 'Bearer 00ef34c7f062fdb0fa77dcec86db445c');
@@ -236,7 +221,7 @@ class local_pfc{
             $html = $name.':<br/>';
             if(!$error){
                 $count = count($response);
-                $html = $html . '<span style="color:#558b2f;">Working, got '.$count.' '.$name.'</span>';
+                $html = $html . '<span style="color:#558b2f;">Working, received '.$count.' '.$name.'</span>';
             }elseif(!$critical_error){
                 $html = $html.'<pre style="color:#e65100;">'.$response->getOriginalMessage().'<br/>';
                 if($response->getResponseObject()){
@@ -269,7 +254,7 @@ class local_pfc{
             $event->id = 0;
             // name
             $getter = \local_pfc\models\evaluation_type::$getters['id'];
-            $evaluation_type = $this->get_instance_from_array(
+            $evaluation_type = $this->select_instance_from_array(
                 $evaluation_types, $getter, $evaluation->getIdTipoAvaliacao());
             $event->name = !is_null($evaluation_type) ? $evaluation_type->getDescricao() : '';
 
@@ -317,7 +302,7 @@ class local_pfc{
      * @param $comparation_value
      * @return mixed|null
      */
-    private function get_instance_from_array($array, $getter, $comparation_value){
+    private function select_instance_from_array($array, $getter, $comparation_value){
         $instance = NULL;
         foreach ($array as $element){
             if($element->$getter() == $comparation_value){
@@ -356,34 +341,10 @@ class local_pfc_api_interface {
      */
     public function __construct()
     {
-        $api_configuration = $this->get_api_configuration_with_authorization_token();
-        $api_client = new \local_pfc\api_client($api_configuration);
+        $api_client = new \local_pfc\api_client();
         $this->calendar_api = new \local_pfc\api\calendar_api($api_client);
         $this->evaluation_api = new \local_pfc\api\evaluation_api($api_client);
         $this->evaluation_type_api = new \local_pfc\api\evaluation_type_api($api_client);
-    }
-
-    /**
-     * @return \local_pfc\api_configuration
-     * @throws moodle_exception
-     */
-    private function get_api_configuration_with_authorization_token(){
-        global $CFG;
-        require_once $CFG->dirroot . '/local/pfc/lib/OpenIDConnectPHP/OpenIDConnectClient.php';
-
-        $api_configuration = \local_pfc\api_configuration::getDefaultConfiguration();
-        echo local_pfc_config::API_IDENTITY_PROVIDER_URL;
-        try{
-            $oidc = new OpenIDConnectClient(local_pfc_config::API_IDENTITY_PROVIDER_URL,
-                local_pfc_config::API_CLIENT_ID,
-                local_pfc_config::API_CLIENT_SECRET);
-            $oidc->authenticate();
-            $name = $oidc->requestUserInfo('given_name');
-            echo $name;
-        }catch (Exception $e){
-            throw new moodle_exception($e->getMessage());
-        }
-        return $api_configuration;
     }
 
     /**

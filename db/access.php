@@ -21,6 +21,7 @@
  */
 
 $capabilities = array(
+    /*
     'local/pfc:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
@@ -33,14 +34,15 @@ $capabilities = array(
         )
     ),
 
-    'local/pfc:executesynchronization' => array(
-        'riskbitmask'  => RISK_DATALOSS,
+    'local/pfc:synchronizeevaluations' => array(
+        'riskbitmask'  =>  RISK_DATALOSS,
         'captype'      => 'write',
+        'contextlevel' => CONTEXT_MODULE,
         'archetypes'   => array(
             'student'        => CAP_PROHIBIT,
             'teacher'        => CAP_PROHIBIT,
             'editingteacher' => CAP_PROHIBIT,
             'manager'          => CAP_ALLOW
         )
-    ),
+    ),*/
 );

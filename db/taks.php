@@ -10,19 +10,23 @@
 // You should have received a copy of the GNU General Public License along with Moodle. 
 // If not, see <http://www.gnu.org/licenses/>.
 
-$string['pluginname'] = 'Calendar fetcher';
+/**
+ * [File Documentation]
+ * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 
-// Forms
-// Check api form
-$string['checkapi_info'] = '<p>Checks if api is working correctly.</p>';
-$string['checkapi_all'] = 'All';
-$string['checkapi_calendars'] = 'Calendars';
-$string['checkapi_evaluations'] = 'Evaluations';
-$string['checkapi_evaluation_types'] = 'Evaluation types';
-$string['checkapi_submit'] = 'Check api';
-// Synchronize form
-$string['synchronize_calendars_info'] = '<p>Synchronizes evaluation calendars.</p>';
-$string['synchronize_calendars_submit'] = 'Synchronize';
 
-// Others
-$string['synchronize_task'] = 'Synchronize evaluation calendars';
+$tasks = array(
+    array(
+        'classname' => 'local_pfc\task\synchronize_task',
+        'blocking' => 0,
+        'minute' => '*',
+        'hour' => '*',
+        'day' => '*',
+        'dayofweek' => '*',
+        'month' => '*'
+    )
+);

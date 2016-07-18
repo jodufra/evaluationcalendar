@@ -12,20 +12,36 @@
 
 /**
  * [File Documentation]
- *
- * @package local_pfc
+ * @package   local_pfc\task
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
+namespace local_pfc\task;
 
-defined('MOODLE_INTERNAL') || die();
+/**
+ * Class synchronize_evaluation_calendars
+ * @category Class
+ * @package  local_pfc\task
+ */
+class synchronize_task extends \core\task\scheduled_task
+{
+    /**
+     * @return string
+     * @throws \coding_exception
+     */
+    public function get_name() {
+        // Shown in admin screens
+        return get_string('synchronize_task', 'local_pfc');
+    }
 
-$plugin->component = 'local_pfc';    // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_ALPHA;    // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->release = 'v0.0-a2';    // Human readable version name that should help to identify each release of the plugin
-$plugin->requires = 2014051200;    // Requires this Moodle version.
-$plugin->version = 2016070802;    // The current module version (Date: YYYYMMDDXX).
-$plugin->cron = 30;
+    /**
+     *
+     */
+    public function execute() {
+        $pfc = new \local_pfc(true);
+        $pfc->synchronize_evaluation_calendars();
+    }
+}
