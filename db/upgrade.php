@@ -12,19 +12,17 @@
 
 /**
  * [File Documentation]
- *
- * @package local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_pfc';    // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_ALPHA;    // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->release = 'v0.1-a0';    // Human readable version name that should help to identify each release of the plugin
-$plugin->requires = 2014051200;    // Requires this Moodle version.
-$plugin->version = 2016072901;    // The current module version (Date: YYYYMMDDXX).
+function xmldb_pfc_upgrade($oldversion) {
+    global $DB;
+    $dbman = $DB->get_manager();
+
+    return true;
+}

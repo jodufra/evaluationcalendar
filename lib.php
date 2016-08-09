@@ -240,57 +240,95 @@ class local_pfc{
      * @return stdClass|string
      */
     function synchronize_evaluation_calendars() {
-        $result = new stdClass();
-        $result->evaluations = 0;
-        $result->errors = 0;
-
         $calendars = $this->api_interface->get_calendars();
         $evaluations = $this->api_interface->get_evaluations();
         $evaluation_types = $this->api_interface->get_evaluation_types();
 
+        $result = new stdClass();
+        $result->calendars_count = sizeof($calendars);
+        $result->evaluations_count = sizeof($evaluations);
+        $result->evaluation_types_count = sizeof($evaluation_types);
+        $result->logs = [];
+        $result->inserts = 0;
+        $result->updates = 0;
+        $result->cleaned = 0;
+        $result->errors = 0;
+
         foreach ($evaluations as $evaluation){
-            $calendar_event = new \calendar_event();
-            $event = new stdClass();
-            $event->id = 0;
+            try{
+                $pfc_event = local_pfc_event::read_from_evaluation_id( $evaluation->getId());
+                try{
+                    $calendar_event = calendar_event::load($pfc_event->eventid);
+                }catch (Exception $ce){
+                    $result->cleaned++;
+                    $pfc_event->delete(false);
+                    throw $ce;
+                }
+            } catch(Exception $e){
+                $pfc_event = new local_pfc_event();
+                $calendar_event = new stdClass();
+                // set default values
+                $calendar_event->id = 0;
+                $calendar_event->format = 1;
+                $calendar_event->userid = 0;
+                $calendar_event->modulename = 0;
+                $calendar_event->eventtype = "course";
+            }
             // name
             $getter = \local_pfc\models\evaluation_type::$getters['id'];
             $evaluation_type = $this->select_instance_from_array(
                 $evaluation_types, $getter, $evaluation->getIdTipoAvaliacao());
-            $event->name = !is_null($evaluation_type) ? $evaluation_type->getDescricao() : '';
-
-            // description, format
-            $event->description = $evaluation->getDescricao();
-            $event->format = 1;
-
-            // course id
-            $event->courseid = 2;
-            $event->userid = 0;
-
-            // modulename, event type
-            $event->modulename = 0;
-            $event->eventtype = "course";
-
+            $calendar_event->name = !is_null($evaluation_type) ? $evaluation_type->getDescricao() : '';
+            // description
+            $calendar_event->description = $evaluation->getDescricao();
             // Time stamps
             $time_start = new DateTime($evaluation->getDataInicio(), new DateTimeZone('Europe/Rome'));
             $time_start_stamp = $time_start->getTimestamp();
             $time_end = new DateTime($evaluation->getDataFim(), new DateTimeZone('Europe/Rome'));
             $time_end_stamp = $time_end->getTimestamp();
-            $event->timestart = $time_start_stamp;
+            $calendar_event->timestart = $time_start_stamp;
             if($time_end_stamp){
-                $event->timeduration = $time_end_stamp - $time_start_stamp;
+                $calendar_event->timeduration = $time_end_stamp - $time_start_stamp;
             }
+            // course
+            $calendar_event->courseid = 2;
 
-            // Insert event
-            $result->evaluations++;
-            if(!$calendar_event->update($event))
-                $result->errors++;
+            if($pfc_event->isnew()){
+                // Insert events
+                $calendar_event = calendar_event::create($calendar_event);
+                if(!$calendar_event){
+                    debugging('Error inserting calendar event: <br>'.var_export($calendar_event, true), DEBUG_DEVELOPER);
+                    $result->errors++;
+                    continue;
+                }
+                $pfc_event->eventid = $calendar_event->id;
+                $pfc_event->evaluationid = $evaluation->getId();
+                $pfc_event = local_pfc_event::create($pfc_event->properties());
+                if(!$pfc_event){
+                    debugging('Error inserting pfc event: <br>'.var_export($pfc_event, true), DEBUG_DEVELOPER);
+                    $result->errors++;
+                    continue;
+                }
+                $result->inserts++;
+            }else{
+                // Update event
+                $calendar_event = $calendar_event->update($calendar_event);
+                if(!$calendar_event){
+                    debugging('Error updating calendar event: <br>'.var_export($calendar_event, true), DEBUG_DEVELOPER);
+                    $result->errors++;
+                    continue;
+                }
+                $result->updates++;
+            }
         }
 
         if($this->render_html){
-            $html = "<p>Synchronized [";
-            $html = $html."<span style='color:#558b2f'>Evaluations: ".$result->evaluations."</span>, ";
-            $html = $html."<span style='color:#e65100'>Errors: ".$result->errors."</span>";
-            $html = $html."]</p>";
+            $html = "<p>Synchronized ( ";
+            $html = $html."<b style='color:#4CAF50'>Inserts: ".$result->inserts."</b> ";
+            $html = $html."<b style='color:#FF9800'><small>{ Cleaned: ".$result->cleaned." }</small></b>, ";
+            $html = $html."<b style='color:#2196F3'>Updates: ".$result->updates."</b>, ";
+            $html = $html."<b style='color:#F44336'>Errors: ".$result->errors."</b>";
+            $html = $html." )</p>";
             return $html;
         }
         return $result;
@@ -299,13 +337,13 @@ class local_pfc{
     /**
      * @param $array
      * @param $getter
-     * @param $comparation_value
+     * @param $comparison_value
      * @return mixed|null
      */
-    private function select_instance_from_array($array, $getter, $comparation_value){
+    private function select_instance_from_array($array, $getter, $comparison_value){
         $instance = NULL;
         foreach ($array as $element){
-            if($element->$getter() == $comparation_value){
+            if($element->$getter() == $comparison_value){
                 $instance = $element;
                 break;
             }
@@ -366,5 +404,243 @@ class local_pfc_api_interface {
      */
     function get_evaluation_types() {
         return $this->evaluation_type_api->get_evaluation_types();
+    }
+}
+
+
+/**
+ * Manage the plugin events table
+ *
+ * This class provides the required functionality in order to manage the local_pfc_events.
+ * The local_pfc_event determines the relation between the calendar_event and the "Calendars Web API" evaluations.
+ *
+ * @category Class
+ *
+ * @property int $id The id within the event table
+ * @property int $eventid The calendar event this event is associated with (0 if none)
+ * @property string $evaluationid The calendars web api evaluation id this event is associated with (empty if none)
+ */
+class local_pfc_event
+{
+    /** @var array An object containing the event properties can be accessed via the __get/set methods */
+    protected $properties = null;
+
+    /**
+     * Instantiates a new local_pfc event and optionally populates its properties with the data provided
+     *
+     * @param stdClass $data Optional. An object containing the properties to for an event
+     * @param boolean $loadcalendarevent Optional (default: true). True to load the calendar_event if $data->eventid was
+     *                               provided
+     */
+    public function __construct($data = null)
+    {
+        // First convert to object if it is not already (should either be object or assoc array)
+        if (!is_object($data)) {
+            $data = (object)$data;
+        }
+
+        if (empty($data->id)) {
+            $data->id = null;
+        }
+        if (empty($data->eventid) ) {
+            $data->eventid = 0;
+        }
+        if(empty($data->evaluationid)){
+            $data->evaluationid = "";
+        }
+        $this->properties = $data;
+    }
+
+    /**
+     * Properties set method
+     *
+     * Attempts to call a set_$key method if one exists otherwise falls back
+     * to simply set the property
+     *
+     * @param string $key property name
+     * @param mixed $value value of the property
+     */
+    public function __set($key, $value) {
+        if (method_exists($this, 'set_'.$key)) {
+            $this->{'set_'.$key}($value);
+        }
+        $this->properties->{$key} = $value;
+    }
+
+    /**
+     * Properties get method
+     *
+     * Attempts to call a get_$key method to return the property and falls over
+     * to return the raw property
+     *
+     * @param string $key property name
+     * @return mixed property value
+     * @throws coding_exception
+     */
+    public function __get($key) {
+        if (method_exists($this, 'get_'.$key)) {
+            return $this->{'get_'.$key}();
+        }
+        if (!isset($this->properties->{$key})) {
+            throw new coding_exception('Undefined property requested');
+        }
+        return $this->properties->{$key};
+    }
+
+    /**
+     * PHP needs an isset method if you use the properties get method and
+     * still want empty calls to work
+     *
+     * @param string $key $key property name
+     * @return bool|mixed property value, false if property is not exist
+     */
+    public function __isset($key) {
+        return !empty($this->properties->{$key});
+    }
+
+    /**
+     * Checks if this event is new
+     *
+     * @return bool True if this event is new
+     */
+    public function isnew(){
+        return empty($this->properties->id) || $this->properties->id < 1;
+    }
+
+    /**
+     * Fetch all event properties
+
+     * This function returns all of the events properties as an object
+     *
+     * @return stdClass Object containing event properties
+     */
+    public function properties(){
+        return clone($this->properties);
+    }
+
+    /**
+     * Creates a new event and returns a local_pfc_event object
+     *
+     * @param stdClass|array $properties An object containing event properties
+     * @throws coding_exception
+     *
+     * @return local_pfc_event|bool The event object or false if it failed
+     */
+    public static function create($properties){
+        if (is_array($properties)) {
+            $properties = (object)$properties;
+        }
+        if (!is_object($properties)) {
+            throw new coding_exception('When creating an event properties should be either an object or an assoc array');
+        }
+        $event = new local_pfc_event($properties);
+        if ($event->update($properties)) {
+            return $event;
+        } else {
+            return false;
+        }
+    }
+
+    /**
+     * Returns a local_pfc_event object when provided with an id
+     *
+     * This function makes use of MUST_EXIST, if the id passed in is invalid
+     * it will result in an exception being thrown
+     *
+     * @param int|object $param event object or id
+     * @return local_pfc_event|false status for loading local_pfc_event
+     */
+    public static function read($param){
+        global $DB;
+        if (is_object($param)) {
+            $event = new local_pfc_event($param);
+        } else {
+            $event = $DB->get_record('local_pfc_event', array('id'=>(int)$param), '*', MUST_EXIST);
+            $event = new local_pfc_event($event);
+        }
+        return $event;
+    }
+
+    /**
+     * Returns a local_pfc_event object when provided with the name of the property and
+     * the its valid value
+     *
+     * This function makes use of MUST_EXIST, if the id passed in is invalid
+     * it will result in an exception being thrown
+     *
+     * @param string $param evaluation id
+     * @return local_pfc_event|false status for loading local_pfc_event
+     */
+    public static function read_from_evaluation_id($param){
+        global $DB;
+        $event = $DB->get_record('local_pfc_event', array('evaluationid'=>$param), '*', MUST_EXIST);
+        $event = new local_pfc_event($event);
+        return $event;
+    }
+
+    /**
+     * Update or create an local_pfc_event within the database
+     *
+     * Pass in a object containing the event properties and this function will
+     * insert it into the database
+     *
+     * @see self::create()
+     * @see self::update()
+     *
+     * @param stdClass $data object of event
+     * @return bool event created or updated with success
+     */
+    public function update($data){
+        global $DB;
+
+        foreach ($data as $key=>$value) {
+            $this->properties->$key = $value;
+        }
+
+        if (empty($this->properties->id) || $this->properties->id < 1) {
+            // Insert
+            $this->properties->id = $DB->insert_record('local_pfc_event', $this->properties);
+            return true;
+        }else{
+            // Update
+            $DB->update_record('local_pfc_event', $this->properties);
+            $event = local_pfc_event::read($this->properties->id);
+            $this->properties = $event->properties();
+            return true;
+        }
+    }
+
+    /**
+     * Deletes an local_pfc_event, and if selected, deletes the associated calendar_event
+     *
+     * This function deletes an event and the associated calendar_event if $deletecalendarevent=true.
+     * This function makes use of MUST_EXIST to ensure the local_pfc_event is valid, if not
+     * it will result in an exception being thrown
+     *
+     * @see self::delete()
+     *
+     * @param bool $deletecalendarevent delete calendar_event
+     * @return bool succession of deleting event
+     */
+    public function delete($deletecalendarevent=true){
+        global $DB;
+
+        // If $this->properties->id is not set then something is wrong
+        if (empty($this->id) || $this->id < 1) {
+            debugging('Attempting to delete an event before it has been loaded', DEBUG_DEVELOPER);
+            return false;
+        }
+
+        // Ensures there is an event to be deleted
+        $DB->get_record('local_pfc_event',  array('id' => $this->id), '*', MUST_EXIST);
+        // Delete the event
+        $DB->delete_records('local_pfc_event', array('id'=>$this->id));
+
+        if($deletecalendarevent)
+        {
+            $calendar_event = calendar_event::load($this->eventid);
+            return $calendar_event->delete();
+        }
+        return true;
     }
 }

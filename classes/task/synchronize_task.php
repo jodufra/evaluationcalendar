@@ -41,7 +41,10 @@ class synchronize_task extends \core\task\scheduled_task
      *
      */
     public function execute() {
-        $pfc = new \local_pfc(true);
+        global $CFG;
+        require_once($CFG->dirroot . '/local/pfc/lib.php');
+
+        $pfc = new \local_pfc(false);
         $pfc->synchronize_evaluation_calendars();
     }
 }
