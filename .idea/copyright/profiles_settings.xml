@@ -1,0 +1,9 @@
+<component name="CopyrightManager">
+  <settings default="">
+    <LanguageOptions name="JavaScript">
+      <option name="separateAfter" value="true" />
+    </LanguageOptions>
+    <LanguageOptions name="PHP" />
+    <LanguageOptions name="__TEMPLATE__" />
+  </settings>
+</component>

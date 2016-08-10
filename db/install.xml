@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<XMLDB PATH="local/pfc/db" VERSION="20160729" COMMENT="XMLDB file for Moodle local/pfc"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:noNamespaceSchemaLocation="../../../lib/xmldb/xmldb.xsd"
+>
+  <TABLES>
+    <TABLE NAME="local_pfc_event" COMMENT="Relation between Moodle's Events and Evaluations (Calendars Web API)">
+      <FIELDS>
+        <FIELD NAME="id" TYPE="int" LENGTH="10" NOTNULL="true" SEQUENCE="true"/>
+        <FIELD NAME="eventid" TYPE="int" LENGTH="10" NOTNULL="true" DEFAULT="0" SEQUENCE="false" COMMENT="Foreign key to Moodle's Event table"/>
+        <FIELD NAME="evaluationid" TYPE="char" LENGTH="32" NOTNULL="true" SEQUENCE="false" COMMENT="Evaluations (Calendars Web API) identifier field"/>
+      </FIELDS>
+      <KEYS>
+        <KEY NAME="primary" TYPE="primary" FIELDS="id"/>
+      </KEYS>
+      <INDEXES>
+        <INDEX NAME="eventid" UNIQUE="false" FIELDS="eventid"/>
+        <INDEX NAME="evaluationid" UNIQUE="false" FIELDS="evaluationid"/>
+      </INDEXES>
+    </TABLE>
+  </TABLES>
+</XMLDB>
