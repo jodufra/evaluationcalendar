@@ -39,7 +39,7 @@ class evaluation_type_api extends base_api
      * Class path of the returning model of the api
      * @var string
      */
-    private static $_model = '\local_pfc\models\evaluation';
+    private static $_model = '\local_pfc\models\evaluation_type';
 
     /**
      * Constructor
@@ -100,7 +100,6 @@ class evaluation_type_api extends base_api
             throw $e;
         }
     }
-
 
     /**
      *
