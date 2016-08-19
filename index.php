@@ -12,12 +12,11 @@
 
 /**
  * [File Documentation]
- *
- * @package local_pfc
+ * @package   local_pfc
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 global $CFG, $OUTPUT;
@@ -25,46 +24,42 @@ require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once($CFG->dirroot . '/local/pfc/lib.php');
 
-
-// Gets query data
-$requestType = optional_param('requesttype', '', PARAM_TEXT);
-$synchronize = optional_param('synchronize', '', PARAM_TEXT);
-$pageParams = array();
-if ($requestType) {
-    $pageParams['requesttype'] = $requestType;
-}
-if ($synchronize) {
-    $pageParams['synchronize'] = $synchronize;
-}
-
 // Initialize admin page
-admin_externalpage_setup('local_pfc', '', $pageParams);
+admin_externalpage_setup('local_pfc');
 
-// Prepares the form and checks if given data is valid
-$check_api_form = new local_pfc_check_api_form(new moodle_url('/local/pfc/'));
-$check_api_form->set_data((object) $pageParams);
-if ($data = $check_api_form->get_data()) {
-    redirect(new moodle_url('/local/pfc/', $pageParams));
-}
 
-$synchronize_calendars_form = new local_pfc_synchronize_calendars_form(new moodle_url('/local/pfc/'));
-$synchronize_calendars_form->set_data((object) $pageParams);
-if ($data = $synchronize_calendars_form->get_data()) {
-    redirect(new moodle_url('/local/pfc/', $pageParams));
-}
+$moodle_url = new moodle_url('/local/pfc/');
 
-// Print page
-echo $OUTPUT->header();
-$check_api_form->display();
-$synchronize_calendars_form->display();
-if($requestType || $synchronize){
+$synchronize_form_result = '';
+$synchronize_form = new local_pfc_synchronize_form($moodle_url);
+if ($data = $synchronize_form->get_data()) {
     $pfc = new local_pfc(true);
-    if($requestType){
-        echo $pfc->check_api_interface($requestType);
-    }
-    if($synchronize){
-        echo $pfc->synchronize_evaluation_calendars();
+    if (strcmp($data->synchronize, 'all')) {
+        $synchronize_form_result = $pfc->synchronize_evaluation_calendars(true);
+    } else {
+        $synchronize_form_result = $pfc->synchronize_evaluation_calendars();
     }
 }
+
+$config_form_result = '';
+$config_form = new local_pfc_config_form($moodle_url);
+$config_form->set_data(local_pfc_config::Instance()->generate_form_data());
+if ($data = $config_form->get_data()) {
+    $pfc = new local_pfc(true);
+    if (!empty($data->restore_defaults)) {
+        $config_form_result = $pfc->restore_config_to_defaults();
+    } else {
+        $config_form_result = $pfc->update_config($data);
+    }
+    // Since changes might been made we need to reload the form in order to display the correct information
+    $config_form->definition_after_data($config_form_result);
+}
+
+echo $OUTPUT->header();
+$synchronize_form->display();
+if ($synchronize_form_result) {
+    echo '<code style="display: block">' . $synchronize_form_result . '</code>';
+}
+$config_form->display();
 echo $OUTPUT->footer();
 

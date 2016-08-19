@@ -25,45 +25,10 @@ require_once $CFG->libdir . '/formslib.php';
 
 
 /**
- * Class local_pfc_check_api_form
- * @category Class
- */
-class local_pfc_check_api_form extends moodleform
-{
-
-    /**
-     * @throws coding_exception
-     */
-    protected function definition()
-    {
-        $pfc_form = $this->_form;
-
-        // information
-        $pfc_form->addElement('static', '', '', get_string('checkapi_info', 'local_pfc'));
-
-        // radio buttons
-        $requestTypes = array();
-        $requestTypes[] = $pfc_form->createElement('radio', 'requesttype', '',
-            get_string('checkapi_all', 'local_pfc'), 'all');
-        $requestTypes[] = $pfc_form->createElement('radio', 'requesttype', '',
-            get_string('checkapi_calendars', 'local_pfc'), 'calendars');
-        $requestTypes[] = $pfc_form->createElement('radio', 'requesttype', '',
-            get_string('checkapi_evaluations', 'local_pfc'), 'evaluations');
-        $requestTypes[] = $pfc_form->createElement('radio', 'requesttype', '',
-            get_string('checkapi_evaluation_types', 'local_pfc'), 'evaluation_types');
-        $pfc_form->addGroup($requestTypes, 'requestTypes', '', array(' '), false);
-        $pfc_form->setDefault('requesttype', 'all');
-
-        // submit button
-        $pfc_form->addElement('submit', 'submitbutton', get_string('checkapi_submit', 'local_pfc'));
-    }
-}
-
-/**
  * Class local_pfc_synchronize_calendars_form
  * @category Class
  */
-class local_pfc_synchronize_calendars_form extends moodleform
+class local_pfc_synchronize_form extends moodleform
 {
 
     /**
@@ -71,58 +36,254 @@ class local_pfc_synchronize_calendars_form extends moodleform
      */
     protected function definition()
     {
-        $pfc_form = $this->_form;
+        $mform = $this->_form;
 
         // information
-        $pfc_form->addElement('static', '', '', get_string('synchronize_calendars_info', 'local_pfc'));
+        $mform->addElement('static', '', '', get_string('synchronize_info', 'local_pfc'));
 
         // radio buttons
         $requestTypes = array();
-        $requestTypes[] = $pfc_form->createElement('radio', 'synchronize', '',
-            get_string('synchronize_calendars_submit', 'local_pfc'), 'true');
-        $pfc_form->addGroup($requestTypes, 'Synchronize', '', array(' '), false);
-        $pfc_form->setDefault('synchronize', 'true');
+        $requestTypes[] = $mform->createElement('radio', 'synchronize', '',
+            get_string('synchronize_last_updated', 'local_pfc'), 'last_updated');
+        $requestTypes[] = $mform->createElement('radio', 'synchronize', '',
+            get_string('synchronize_all', 'local_pfc'), 'all');
+        $mform->addGroup($requestTypes, 'Synchronize', get_string('synchronize', 'local_pfc'), array(' '), false);
+        $mform->setDefault('synchronize', 'last_updated');
 
         // submit button
-        $pfc_form->addElement('submit', 'submitbutton', get_string('synchronize_calendars_submit', 'local_pfc'));
+        $mform->addElement('submit', 'submitbutton', get_string('synchronize_submit', 'local_pfc'));
+    }
+}
+
+/**
+ * Class local_pfc_check_api_form
+ * @category Class
+ */
+class local_pfc_config_form extends moodleform
+{
+
+    public function definition_after_data($task_result = '')
+    {
+        $mform = $this->_form;
+        if ($mform->isSubmitted()) {
+            $elem = $mform->getElement('restore_defaults');
+            $value = $elem->getValue();
+            if (!empty($value)) {
+                $data = local_pfc_config::Instance()->generate_form_data();
+                foreach ($data as $key => $value) {
+                    $elem = $mform->getElement($key);
+                    $elem->setValue($value);
+                }
+            }
+            $elem = $mform->getElement('result');
+            $elem->setValue($task_result);
+        }
+    }
+
+    /**
+     * @throws coding_exception
+     */
+    protected function definition()
+    {
+        $mform = $this->_form;
+
+        // static info
+        $mform->addElement('static', '', '', get_string('config_info', 'local_pfc'));
+
+        // container to show result
+        $mform->addElement('static', 'result', '', '');
+
+        // auth header
+        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header', 'local_pfc'), array('size' => '24'));
+        $mform->addElement('text', 'api_authorization_header_value', '', array('size' => '64'));
+        $mform->setType('api_authorization_header_key', PARAM_NOTAGS);
+        $mform->setType('api_authorization_header_value', PARAM_NOTAGS);
+
+        // host
+        $mform->addElement('text', 'api_host', get_string('config_api_host', 'local_pfc'), array('size' => '64'));
+        $mform->setType('api_host', PARAM_NOTAGS);
+
+        // paths
+        $mform->addElement('static', '', '', get_string('config_api_paths', 'local_pfc'));
+        foreach (local_pfc_config::Instance()->api_paths as $key => $value) {
+            $mform->addElement('text', 'path_' . $key, get_string($key, 'local_pfc'), array('size' => '40'));
+            $mform->setType('path_' . $key, PARAM_NOTAGS);
+        }
+
+        // buttons
+        $mform->addElement('submit', 'restore_defaults', get_string('restore_defaults', 'local_pfc'));
+        $mform->addElement('submit', 'submitbutton', get_string('save', 'local_pfc'));
     }
 }
 
 
 /**
- * Class local_pfc_config
+ * Manage the plugin settings
+ * This class provides the required functionality in order to manage the local_pfc_config.
+ * The local_pfc_config is the container of this plugin's settings
  * @category Class
+ * @property array  $api_authorization_header
+ * @property string $api_host
+ * @property array  $api_paths
  */
 final class local_pfc_config
 {
 
-    /**
-     * API authorization header
-     */
-    public static $API_AUTHORIZATION_HEADER = array('Authorization' => 'Bearer 00ef34c7f062fdb0fa77dcec86db445c');
-
-    /**
-     * API host
-     */
-    const API_HOST = 'https://apis.ipleiria.pt/dev/calendarios-avaliacoes/v1';
-
-    /**
-     * API url paths
-     */
-    public static $API_PATHS = array(
+    /** @var string Default API authorization header */
+    private static $DEFAULT_API_AUTHORIZATION_HEADER = array('Authorization' => 'Bearer 00ef34c7f062fdb0fa77dcec86db445c');
+    /** @var string Default API host */
+    private static $DEFAULT_API_HOST = 'https://apis.ipleiria.pt/dev/calendarios-avaliacoes/v1';
+    /** @var array Default API url paths */
+    private static $DEFAULT_API_PATHS = array(
         'calendars' => '/calendarios',
         'evaluations' => '/avaliacoes',
         'evaluations_ucs' => '/avaliacoes/avaliacoes-ucs',
         'evaluation_types' => '/tipos-avaliacao',
         'evaluation_type' => '/tipos-avaliacao/{idTipoAvaliacao}'
     );
+    /** @var array An object containing the event properties can be accessed via the __get/set methods */
+    private $properties = null;
 
     /**
-     * local_pfc_config constructor.
+     * Instantiates a new local_pfc_config
      */
-    public function __construct()
+    private function __construct()
     {
-        throw new coding_exception("local_pfc_config can't be instantiated.");
+        $this->properties = new stdClass();
+        $this->properties->api_authorization_header = local_pfc_config::$DEFAULT_API_AUTHORIZATION_HEADER;
+        $this->properties->api_host = local_pfc_config::$DEFAULT_API_HOST;
+        $this->properties->api_paths = local_pfc_config::$DEFAULT_API_PATHS;
+        $this->read();
+    }
+
+    /**
+     * Loads all lines from the database and stores them in the properties
+     */
+    private function read()
+    {
+        global $DB;
+        $lines = $DB->get_records('local_pfc_config');
+        foreach ($lines as $line) {
+            $value = json_decode($line->value);
+            if (is_object($value)) {
+                $value = (array)$value;
+            }
+            $this->properties->{$line->name} = $value;
+        }
+    }
+
+    /**
+     * Properties get method
+     * Attempts to call a get_$key method to return the property and falls over
+     * to return the raw property
+     * @param string $key property name
+     * @return mixed property value
+     * @throws coding_exception
+     */
+    public function __get($key)
+    {
+        if (method_exists($this, 'get_' . $key)) {
+            return $this->{'get_' . $key}();
+        }
+        if (!isset($this->properties->{$key})) {
+            throw new coding_exception('Undefined property requested (' . $key . ')');
+        }
+        return $this->properties->{$key};
+    }
+
+    /**
+     * Properties set method
+     * Attempts to call a set_$key method if one exists otherwise falls back
+     * to simply set the property
+     * @see local_pfc_config::update()
+     * @param string $key   property name
+     * @param mixed  $value value of the property
+     */
+    public function __set($key, $value)
+    {
+        if (method_exists($this, 'set_' . $key)) {
+            $this->{'set_' . $key}($value);
+        } else {
+            $this->properties->{$key} = $value;
+            $this->update($key);
+        }
+    }
+
+    /**
+     * Update or create an local_pfc_config within the database
+     * Pass in a key containing the config key and the value to be updated. It search the database for a similar key,
+     * if found will update it else will insert it into the database
+     * @param string $key key attribute of a local_pfc_config
+     * @return bool event created or updated with success
+     */
+    private function update($key)
+    {
+        global $DB;
+        $value = json_encode($this->properties->{$key});
+        $line = $DB->get_record('local_pfc_config', array('name' => $key));
+        if ($line) {
+            // Update
+            $line->value = $value;
+            return $DB->update_record('local_pfc_config', $line);
+        } else {
+            // Insert
+            $line = new stdClass();
+            $line->name = $key;
+            $line->value = $value;
+            return $DB->insert_record('local_pfc_config', $line);
+        }
+    }
+
+    /**
+     * PHP needs an isset method if you use the properties get method and
+     * still want empty calls to work
+     * @param string $key $key property name
+     * @return bool|mixed property value, false if property is not exist
+     */
+    public function __isset($key)
+    {
+        return !empty($this->properties->{$key});
+    }
+
+    /**
+     * Sets the properties for their default value using the dynamic _set function
+     * @see local_pfc_config::_set()
+     */
+    public function restore_defaults()
+    {
+        $this->api_authorization_header = local_pfc_config::$DEFAULT_API_AUTHORIZATION_HEADER;
+        $this->api_host = local_pfc_config::$DEFAULT_API_HOST;
+        $this->api_paths = local_pfc_config::$DEFAULT_API_PATHS;
+    }
+
+    /**
+     * Generates an assoc array with data to fill the config form
+     * @return array
+     */
+    public function generate_form_data()
+    {
+        $result = [];
+        $first_key = array_keys($this->properties->api_authorization_header)[0];
+        $result['api_authorization_header_key'] = $first_key;
+        $result['api_authorization_header_value'] = $this->properties->api_authorization_header[$first_key];
+        $result['api_host'] = $this->properties->api_host;
+        foreach (local_pfc_config::Instance()->api_paths as $key => $value) {
+            $result['path_' . $key] = $value;
+        }
+        return $result;
+    }
+
+    /**
+     * Call this method to get singleton
+     * @return local_pfc_config
+     */
+    public static function Instance()
+    {
+        static $inst = null;
+        if ($inst === null) {
+            $inst = new local_pfc_config();
+        }
+        return $inst;
     }
 }
 
@@ -220,7 +381,7 @@ class local_pfc
         }
 
         if ($this->render_html) {
-            $name = get_string('checkapi_' . $type, 'local_pfc');
+            $name = get_string($type, 'local_pfc');
             $html = $name . ':<br/>';
             if (!$error) {
                 $count = count($response);
@@ -240,9 +401,11 @@ class local_pfc
     }
 
     /**
+     * @param bool $update_all Set to true to synchronize all published evaluations, else it will only synchronize
+     *                         the evaluations updated since the last synchronization.
      * @return stdClass|string
      */
-    public function synchronize_evaluation_calendars()
+    public function synchronize_evaluation_calendars($update_all = false)
     {
         global $DB;
 
@@ -451,13 +614,14 @@ class local_pfc
             }
         }
 
+
         if ($this->render_html) {
-            $html = "<p>Synchronized ( ";
-            $html = $html . "<b style='color:#4CAF50'>Inserts: " . $result->inserts . "</b> ";
-            $html = $html . "<b style='color:#FF9800'>( Cleaned: " . $result->cleaned . " )</b>, ";
-            $html = $html . "<b style='color:#2196F3'>Updates: " . $result->updates . "</b>, ";
-            $html = $html . "<b style='color:#F44336'>Errors: " . $result->errors . "</b>";
-            $html = $html . "<b style='color:#F44336'>( Deleted: " . $result->deleted . " )</b>, ";
+            $html = "<p style='color: black'>Synchronized ( ";
+            $html = $html . "<b style='color:#4CAF50'>" . get_string('inserts', 'local_pfc') . ": " . $result->inserts . "</b> ";
+            $html = $html . "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_pfc') . ": " . $result->cleaned . " )</b>, ";
+            $html = $html . "<b style='color:#2196F3'>" . get_string('updates', 'local_pfc') . ": " . $result->updates . "</b>, ";
+            $html = $html . "<b style='color:#F44336'>" . get_string('errors', 'local_pfc') . ": " . $result->errors . "</b> ";
+            $html = $html . "<b style='color:#F44336'>( " . get_string('deleted', 'local_pfc') . ": " . $result->deleted . " )</b> ";
             $html = $html . " )</p>";
             foreach ($result->logs as $log) {
                 $html = $html . "<p>[" . $log->type . "] " . $log->message;
@@ -501,6 +665,50 @@ class local_pfc
             $calendar_event->timeduration = $time_end_stamp - $time_start_stamp;
         }
         return $calendar_event;
+    }
+
+
+    /**
+     * Updates the local_pfc_config singleton with the provided config provided
+     * @see local_pfc_config::restore_defaults()
+     * @param $config object Object containing the values used to update the local_pfc_config
+     * @return string|bool if set to render html, returns a message of task done, else returns true
+     */
+    public function update_config($config)
+    {
+        if (!is_null($config->api_authorization_header_key) && !is_null($config->api_authorization_header_value)) {
+            $auth_header = array($config->api_authorization_header_key => $config->api_authorization_header_value);
+            local_pfc_config::Instance()->api_authorization_header = $auth_header;
+        }
+        if (!is_null($config->api_host)) {
+            local_pfc_config::Instance()->api_host = $config->api_host;
+        }
+        $api_paths = local_pfc_config::Instance()->api_paths;
+        foreach ($api_paths as $key => $value) {
+            if (!is_null($config->{'path_' . $key})) {
+                $api_paths[$key] = $config->{'path_' . $key};
+            }
+        }
+        local_pfc_config::Instance()->api_paths = $api_paths;
+
+        if ($this->render_html) {
+            return '<b style=\'color:#4CAF50\'>' . get_string('config_changes_saved', 'local_pfc') . '</b> ';
+        }
+        return true;
+    }
+
+    /**
+     * Calls the local_pfc_config retore_defaults function, and returns a taks done message.
+     * @see local_pfc_config::restore_defaults()
+     * @return string|bool if set to render html, returns a message of task done, else returns true
+     */
+    public function restore_config_to_defaults()
+    {
+        local_pfc_config::Instance()->restore_defaults();
+        if ($this->render_html) {
+            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_pfc') . '</b> ';
+        }
+        return true;
     }
 }
 
@@ -603,61 +811,6 @@ class local_pfc_event
     }
 
     /**
-     * Properties set method
-     * Attempts to call a set_$key method if one exists otherwise falls back
-     * to simply set the property
-     * @param string $key   property name
-     * @param mixed  $value value of the property
-     */
-    public function __set($key, $value)
-    {
-        if (method_exists($this, 'set_' . $key)) {
-            $this->{'set_' . $key}($value);
-        }
-        $this->properties->{$key} = $value;
-    }
-
-    /**
-     * Properties get method
-     * Attempts to call a get_$key method to return the property and falls over
-     * to return the raw property
-     * @param string $key property name
-     * @return mixed property value
-     * @throws coding_exception
-     */
-    public function __get($key)
-    {
-        if (method_exists($this, 'get_' . $key)) {
-            return $this->{'get_' . $key}();
-        }
-        if (!isset($this->properties->{$key})) {
-            throw new coding_exception('Undefined property requested');
-        }
-        return $this->properties->{$key};
-    }
-
-    /**
-     * PHP needs an isset method if you use the properties get method and
-     * still want empty calls to work
-     * @param string $key $key property name
-     * @return bool|mixed property value, false if property is not exist
-     */
-    public function __isset($key)
-    {
-        return !empty($this->properties->{$key});
-    }
-
-    /**
-     * Fetch all event properties
-     * This function returns all of the events properties as an object
-     * @return stdClass Object containing event properties
-     */
-    public function properties()
-    {
-        return clone($this->properties);
-    }
-
-    /**
      * Creates a new event and returns a local_pfc_event object
      * @param stdClass|array $properties An object containing event properties
      * @throws coding_exception
@@ -677,42 +830,6 @@ class local_pfc_event
         } else {
             return false;
         }
-    }
-
-    /**
-     * Returns a local_pfc_event object when provided with an id
-     * This function makes use of MUST_EXIST, if the id passed in is invalid
-     * it will result in an exception being thrown
-     * @param int|object $param event object or id
-     * @return local_pfc_event|false status for loading local_pfc_event
-     */
-    public static function read($param)
-    {
-        global $DB;
-        if (is_object($param)) {
-            $event = new local_pfc_event($param);
-        } else {
-            $event = $DB->get_record('local_pfc_event', array('id' => (int)$param), '*', MUST_EXIST);
-            $event = new local_pfc_event($event);
-        }
-        return $event;
-    }
-
-    /**
-     * Returns an array of local_pfc_event objects when provided with a existing evaluation id
-     * This function makes use of MUST_EXIST, if the id passed in is invalid
-     * it will result in an exception being thrown
-     * @param string $param evaluation id
-     * @return local_pfc_event[]|false status for loading local_pfc_event
-     */
-    public static function read_from_evaluation_id($param)
-    {
-        global $DB;
-        $events = $DB->get_records('local_pfc_event', array('evaluationid' => $param));
-        foreach ($events as $key => $event) {
-            $events[$key] = new local_pfc_event($event);
-        }
-        return $events;
     }
 
     /**
@@ -743,6 +860,95 @@ class local_pfc_event
             $this->properties = $event->properties();
             return true;
         }
+    }
+
+    /**
+     * Returns a local_pfc_event object when provided with an id
+     * This function makes use of MUST_EXIST, if the id passed in is invalid
+     * it will result in an exception being thrown
+     * @param int|object $param event object or id
+     * @return local_pfc_event|false status for loading local_pfc_event
+     */
+    public static function read($param)
+    {
+        global $DB;
+        if (is_object($param)) {
+            $event = new local_pfc_event($param);
+        } else {
+            $event = $DB->get_record('local_pfc_event', array('id' => (int)$param), '*', MUST_EXIST);
+            $event = new local_pfc_event($event);
+        }
+        return $event;
+    }
+
+    /**
+     * Fetch all event properties
+     * This function returns all of the events properties as an object
+     * @return stdClass Object containing event properties
+     */
+    public function properties()
+    {
+        return clone($this->properties);
+    }
+
+    /**
+     * Returns an array of local_pfc_event objects when provided with a existing evaluation id
+     * @param string $param evaluation id
+     * @return local_pfc_event[]|false status for loading local_pfc_event
+     */
+    public static function read_from_evaluation_id($param)
+    {
+        global $DB;
+        $events = $DB->get_records('local_pfc_event', array('evaluationid' => $param));
+        foreach ($events as $key => $event) {
+            $events[$key] = new local_pfc_event($event);
+        }
+        return $events;
+    }
+
+    /**
+     * Properties get method
+     * Attempts to call a get_$key method to return the property and falls over
+     * to return the raw property
+     * @param string $key property name
+     * @return mixed property value
+     * @throws coding_exception
+     */
+    public function __get($key)
+    {
+        if (method_exists($this, 'get_' . $key)) {
+            return $this->{'get_' . $key}();
+        }
+        if (!isset($this->properties->{$key})) {
+            throw new coding_exception('Undefined property requested');
+        }
+        return $this->properties->{$key};
+    }
+
+    /**
+     * Properties set method
+     * Attempts to call a set_$key method if one exists otherwise falls back
+     * to simply set the property
+     * @param string $key   property name
+     * @param mixed  $value value of the property
+     */
+    public function __set($key, $value)
+    {
+        if (method_exists($this, 'set_' . $key)) {
+            $this->{'set_' . $key}($value);
+        }
+        $this->properties->{$key} = $value;
+    }
+
+    /**
+     * PHP needs an isset method if you use the properties get method and
+     * still want empty calls to work
+     * @param string $key $key property name
+     * @return bool|mixed property value, false if property is not exist
+     */
+    public function __isset($key)
+    {
+        return !empty($this->properties->{$key});
     }
 
     /**

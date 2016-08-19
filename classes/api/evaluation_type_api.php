@@ -79,7 +79,7 @@ class evaluation_type_api extends base_api
     {
 
         // parse inputs
-        $resourcePath = \local_pfc_config::$API_PATHS['evaluation_types'];
+        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluation_types'];
         $queryParams = array();
 
         // query params
@@ -137,7 +137,7 @@ class evaluation_type_api extends base_api
         }
 
         // parse inputs
-        $resourcePath = \local_pfc_config::$API_PATHS['evaluation_type'];
+        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluation_type'];
         $queryParams = array();
 
         // query params
