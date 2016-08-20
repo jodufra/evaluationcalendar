@@ -45,8 +45,8 @@ class api_configuration
     {
         if (self::$_defaultConfiguration == null) {
             self::$_defaultConfiguration = new api_configuration();
-            self::$_defaultConfiguration->defaultHeaders = \local_pfc_config::$API_AUTHORIZATION_HEADER;
-            self::$_defaultConfiguration->host = \local_pfc_config::API_HOST;
+            self::$_defaultConfiguration->defaultHeaders = \local_pfc_config::Instance()->api_authorization_header;
+            self::$_defaultConfiguration->host = \local_pfc_config::Instance()->api_host;
         }
 
         return self::$_defaultConfiguration;

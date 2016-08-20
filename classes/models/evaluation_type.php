@@ -106,6 +106,16 @@ class evaluation_type extends base_model
     }
 
     /**
+     * @param $array evaluation_type[]
+     * @param $param string
+     * @param $comparison_value string
+     * @return evaluation_type|null
+     */
+    public static function select_instance_from_array($array, $param, $comparison_value){
+        return parent::select_instance_from_array($array, $param, $comparison_value);
+    }
+
+    /**
      * $id Identificador do tipo de avalia\u00E7\u00E3o.
      * @var string
      */
@@ -130,7 +140,6 @@ class evaluation_type extends base_model
      */
     public function __construct(array $data = null)
     {
-
         if ($data != null) {
             $this->id = $data["id"];
             $this->descricao = $data["descricao"];
@@ -196,7 +205,6 @@ class evaluation_type extends base_model
      */
     public function setAbreviatura($abreviatura)
     {
-
         $this->abreviatura = $abreviatura;
         return $this;
     }

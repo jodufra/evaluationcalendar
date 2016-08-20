@@ -80,7 +80,7 @@ class evaluation_api extends base_api
     public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null)
     {
         // parse inputs
-        $resourcePath = \local_pfc_config::$API_PATHS['evaluations'];
+        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluations'];
         $queryParams = array();
 
         // query params
@@ -137,7 +137,7 @@ class evaluation_api extends base_api
         }
 
         // parse inputs
-        $resourcePath = \local_pfc_config::$API_PATHS['evaluations_ucs'];
+        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluations_ucs'];
         $queryParams = array();
 
         // query params

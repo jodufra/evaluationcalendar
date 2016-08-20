@@ -25,6 +25,6 @@ defined('MOODLE_INTERNAL') || die();
 
 $plugin->component = 'local_pfc';    // Full name of the plugin (used for diagnostics).
 $plugin->maturity = MATURITY_ALPHA;    // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->release = 'v0.1-a0';    // Human readable version name that should help to identify each release of the plugin
+$plugin->release = 'v0.2-a0';    // Human readable version name that should help to identify each release of the plugin
 $plugin->requires = 2014051200;    // Requires this Moodle version.
-$plugin->version = 2016072901;    // The current module version (Date: YYYYMMDDXX).
+$plugin->version = 2016081900;    // The current module version (Date: YYYYMMDDXX).

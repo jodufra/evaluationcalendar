@@ -69,7 +69,6 @@ class api_object_serializer
 
     /**
      * Sanitize filename by removing path.
-     * e.g. ../../sun.gif becomes sun.gif
      *
      * @param string $filename filename to be sanitized
      *

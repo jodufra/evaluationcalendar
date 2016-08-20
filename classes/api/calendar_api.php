@@ -81,7 +81,7 @@ class calendar_api extends base_api
     {
         
         // parse inputs
-        $resourcePath = \local_pfc_config::$API_PATHS['calendars'];
+        $resourcePath = \local_pfc_config::Instance()->api_paths['calendars'];
         $queryParams = array();
 
         // query params

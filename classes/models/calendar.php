@@ -142,6 +142,16 @@ class calendar extends base_model
     }
 
     /**
+     * @param $array calendar[]
+     * @param $param string
+     * @param $comparison_value string
+     * @return calendar|null
+     */
+    public static function select_instance_from_array($array, $param, $comparison_value){
+        return parent::select_instance_from_array($array, $param, $comparison_value);
+    }
+
+    /**
      * $id Identificador do calendário.
      * @var string
      */

@@ -134,6 +134,16 @@ class evaluation extends base_model
     }
 
     /**
+     * @param $array evaluation[]
+     * @param $param string
+     * @param $comparison_value string
+     * @return evaluation|null
+     */
+    public static function select_instance_from_array($array, $param, $comparison_value){
+        return parent::select_instance_from_array($array, $param, $comparison_value);
+    }
+
+    /**
      * $id Identificador da avaliação.
      * @var string
      */
