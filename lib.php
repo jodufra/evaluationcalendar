@@ -172,8 +172,10 @@ class local_evaluationcalendar_config_form extends moodleform
         $mform->addElement('static', 'result', '', '');
 
         // auth header
-        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header_key', 'local_evaluationcalendar'), array('size' => '24'));
-        $mform->addElement('text', 'api_authorization_header_value', get_string('config_api_authorization_header_value', 'local_evaluationcalendar'), array('size' => '64'));
+        $mform->addElement('text', 'api_authorization_header_key',
+            get_string('config_api_authorization_header_key', 'local_evaluationcalendar'), array('size' => '24'));
+        $mform->addElement('text', 'api_authorization_header_value',
+            get_string('config_api_authorization_header_value', 'local_evaluationcalendar'), array('size' => '64'));
         $mform->setType('api_authorization_header_key', PARAM_NOTAGS);
         $mform->setType('api_authorization_header_value', PARAM_NOTAGS);
 
@@ -187,6 +189,10 @@ class local_evaluationcalendar_config_form extends moodleform
             $mform->addElement('text', 'path_' . $key, get_string($key, 'local_evaluationcalendar'), array('size' => '40'));
             $mform->setType('path_' . $key, PARAM_NOTAGS);
         }
+
+        // development mode
+        $mform->addElement('advcheckbox', 'development_mode',get_string('config_development_mode', 'local_evaluationcalendar'));
+        $mform->setType('development_mode', PARAM_BOOL);
 
         // buttons
         $mform->addElement('submit', 'restore_defaults', get_string('restore_defaults', 'local_evaluationcalendar'));
@@ -205,6 +211,7 @@ class local_evaluationcalendar_config_form extends moodleform
  * @property string   $api_host
  * @property array    $api_paths
  * @property DateTime $last_synchronization
+ * @property bool     $development_mode
  */
 final class local_evaluationcalendar_config
 {
@@ -234,6 +241,7 @@ final class local_evaluationcalendar_config
         $this->properties->api_host = local_evaluationcalendar_config::$DEFAULT_API_HOST;
         $this->properties->api_paths = local_evaluationcalendar_config::$DEFAULT_API_PATHS;
         $this->properties->last_synchronization = new DateTime('1970-01-01 00:00:01');
+        $this->properties->development_mode = false;
         $this->read();
     }
 
@@ -297,23 +305,27 @@ final class local_evaluationcalendar_config
      * Pass in a key containing the config key and the value to be updated. It search the database for a similar key,
      * if found will update it else will insert it into the database
      * @param string $key key attribute of a local_evaluationcalendar_config
-     * @return bool event created or updated with success
      */
     private function update($key)
     {
         global $DB;
+
+        if ($key === 'development_mode' && !$this->properties->{$key}) {
+            local_evaluationcalendar_event::delete_development_events();
+        }
+
         $value = json_encode($this->properties->{$key});
         $line = $DB->get_record('evaluationcalendar_config', array('name' => $key));
         if ($line) {
             // Update
             $line->value = $value;
-            return $DB->update_record('evaluationcalendar_config', $line);
+            $DB->update_record('evaluationcalendar_config', $line);
         } else {
             // Insert
             $line = new stdClass();
             $line->name = $key;
             $line->value = $value;
-            return $DB->insert_record('evaluationcalendar_config', $line);
+            $line->id = $DB->insert_record('evaluationcalendar_config', $line);
         }
     }
 
@@ -353,6 +365,7 @@ final class local_evaluationcalendar_config
         foreach (local_evaluationcalendar_config::Instance()->api_paths as $key => $value) {
             $result['path_' . $key] = $value;
         }
+        $result['development_mode'] = $this->properties->development_mode;
         return $result;
     }
 
@@ -852,9 +865,9 @@ class local_evaluationcalendar
             }
         }
         local_evaluationcalendar_config::Instance()->api_paths = $api_paths;
+        local_evaluationcalendar_config::Instance()->development_mode = !empty($config->development_mode) && $config->development_mode;
 
         $has_errors = count($errors) > 0;
-
         if ($this->render_html) {
             if ($has_errors) {
                 $html = '<p style="color: #F44336">';
@@ -943,7 +956,8 @@ class local_evaluationcalendar_api_interface
     function get_calendars_published_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null)
     {
         $arguments = array();
-        //$arguments['estado'] = 'PUBLICADO';
+        if (!local_evaluationcalendar_config::Instance()->development_mode)
+            $arguments['estado'] = 'PUBLICADO';
         $arguments['updatedAt'] = $this->create_date_time_range_filter($datetime_start, $datetime_end, 'updatedAt');
         return $this->get_calendars($q, $fields, $sort, $arguments);
     }
@@ -1136,7 +1150,7 @@ class local_evaluationcalendar_event
         foreach ($data as $key => $value) {
             $this->properties->$key = $value;
         }
-
+        $this->properties->development = local_evaluationcalendar_config::Instance()->development_mode;
         if (empty($this->properties->id) || $this->properties->id < 1) {
             // Insert
             $this->properties->id = $DB->insert_record('evaluationcalendar_event', $this->properties);
@@ -1266,6 +1280,28 @@ class local_evaluationcalendar_event
         if ($deletecalendarevent) {
             $calendar_event = calendar_event::load($this->eventid);
             return $calendar_event->delete();
+        }
+        return true;
+    }
+
+    /**
+     * Deletes all events inserted during development stage.
+     * Also deletes the related calendar events
+     * @see self::delete()
+     * @return bool succession of deleting event
+     */
+    public static function delete_development_events()
+    {
+        global $DB;
+
+        $records = $DB->get_records('evaluationcalendar_event', array('development' => 1), null, 'eventid');
+        if (count($records) == 0) return true;
+
+        $DB->delete_records('evaluationcalendar_event', array('development' => 1));
+
+        foreach ($records as $record) {
+            $calendar_event = calendar_event::load((int)$record->eventid);
+            $calendar_event->delete();
         }
         return true;
     }

@@ -86,7 +86,7 @@ class base_api
         if (!is_null($_header_accept)) {
             $headerParams['Accept'] = $_header_accept;
         }
-        //$headerParams['Content-Type'] = api_client::selectHeaderContentType(array());
+        $headerParams['Content-Type'] = api_client::selectHeaderContentType(array());
 
         try {
             list($response, $statusCode, $httpHeader) = $this->apiClient->callApi(

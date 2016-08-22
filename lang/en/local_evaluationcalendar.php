@@ -52,6 +52,7 @@ $string['config_api_authorization_header_key'] = 'API Authorization Header Key';
 $string['config_api_authorization_header_value'] = 'API Authorization Header Value';
 $string['config_api_host'] = 'API Host';
 $string['config_api_paths'] = 'API Url Paths';
+$string['config_development_mode'] = 'Development Mode';
 $string['config_defaults_restored'] = 'The configuration values were restored to it\'s defaults';
 $string['config_changes_saved'] = 'The configuration changes were saved';
 

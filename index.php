@@ -27,11 +27,8 @@ require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 // Initialize admin page
 admin_externalpage_setup('local_evaluationcalendar');
 
-
 $moodle_url = new moodle_url('/local/evaluationcalendar/');
-$section = optional_param('section', '', PARAM_PATH);
-
-$section_form = new local_evaluationcalendar_section_form($moodle_url, $section);
+$section_form = new local_evaluationcalendar_section_form($moodle_url, optional_param('section', '', PARAM_PATH));
 $section = $section_form->get_section();
 $moodle_url->param('section', $section);
 
@@ -44,11 +41,11 @@ if (strcmp($section, 'information') == 0) {
     $synchronize_form_result = '';
     $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
     if ($data = $synchronize_form->get_data()) {
-        $evaluationcalendar = new local_evaluationcalendar(true);
+        $evaluation_calendar = new local_evaluationcalendar(true);
         if (strcmp($data->synchronize, 'all') === 0) {
-            $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars(true);
+            $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars(true);
         } else {
-            $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars();
+            $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars();
         }
     }
     $synchronize_form->display();
@@ -60,11 +57,11 @@ if (strcmp($section, 'information') == 0) {
     $config_form = new local_evaluationcalendar_config_form($moodle_url);
     $config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
     if ($data = $config_form->get_data()) {
-        $evaluationcalendar = new local_evaluationcalendar(true);
+        $evaluation_calendar = new local_evaluationcalendar(true);
         if (!empty($data->restore_defaults)) {
-            $config_form_result = $evaluationcalendar->restore_config_to_defaults();
+            $config_form_result = $evaluation_calendar->restore_config_to_defaults();
         } else {
-            $config_form_result = $evaluationcalendar->update_config($data);
+            $config_form_result = $evaluation_calendar->update_config($data);
         }
         // Since changes might been made we need to reload the form in order to display the correct information
         $config_form->definition_after_data($config_form_result);
