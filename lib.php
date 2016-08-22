@@ -62,8 +62,15 @@ class local_pfc_synchronize_form extends moodleform
 class local_pfc_config_form extends moodleform
 {
 
-    public function definition_after_data($task_result = '')
+    /**
+     * Overridden method to use if you need to setup the form depending on current
+     * values. This method is called after definition(), data submission and set_data().
+     * All form setup that is dependent on form values should go in here.
+     * @param $result string (Optional) Value to show in the form result static element
+     */
+    public function definition_after_data($result = '')
     {
+        parent::definition_after_data();
         $mform = $this->_form;
         if ($mform->isSubmitted()) {
             $elem = $mform->getElement('restore_defaults');
@@ -76,7 +83,7 @@ class local_pfc_config_form extends moodleform
                 }
             }
             $elem = $mform->getElement('result');
-            $elem->setValue($task_result);
+            $elem->setValue($result);
         }
     }
 
@@ -94,8 +101,8 @@ class local_pfc_config_form extends moodleform
         $mform->addElement('static', 'result', '', '');
 
         // auth header
-        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header', 'local_pfc'), array('size' => '24'));
-        $mform->addElement('text', 'api_authorization_header_value', '', array('size' => '64'));
+        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header_key', 'local_pfc'), array('size' => '24'));
+        $mform->addElement('text', 'api_authorization_header_value', get_string('config_api_authorization_header_value', 'local_pfc'), array('size' => '64'));
         $mform->setType('api_authorization_header_key', PARAM_NOTAGS);
         $mform->setType('api_authorization_header_value', PARAM_NOTAGS);
 
@@ -121,10 +128,12 @@ class local_pfc_config_form extends moodleform
  * Manage the plugin settings
  * This class provides the required functionality in order to manage the local_pfc_config.
  * The local_pfc_config is the container of this plugin's settings
+ * It is a singleton that can be accessed through the Instance static method.
  * @category Class
- * @property array  $api_authorization_header
- * @property string $api_host
- * @property array  $api_paths
+ * @property array    $api_authorization_header
+ * @property string   $api_host
+ * @property array    $api_paths
+ * @property DateTime $last_synchronization
  */
 final class local_pfc_config
 {
@@ -153,6 +162,7 @@ final class local_pfc_config
         $this->properties->api_authorization_header = local_pfc_config::$DEFAULT_API_AUTHORIZATION_HEADER;
         $this->properties->api_host = local_pfc_config::$DEFAULT_API_HOST;
         $this->properties->api_paths = local_pfc_config::$DEFAULT_API_PATHS;
+        $this->properties->last_synchronization = new DateTime('1970-01-01 00:00:01');
         $this->read();
     }
 
@@ -165,7 +175,9 @@ final class local_pfc_config
         $lines = $DB->get_records('local_pfc_config');
         foreach ($lines as $line) {
             $value = json_decode($line->value);
-            if (is_object($value)) {
+            if ($line->name === 'last_synchronization') {
+                $value = new DateTime($value->date);
+            } else if (is_object($value)) {
                 $value = (array)$value;
             }
             $this->properties->{$line->name} = $value;
@@ -320,7 +332,7 @@ class local_pfc
     public function __construct($render_html = false)
     {
         $this->render_html = $render_html;
-        $this->api_interface = new local_pfc_api_interface();
+        $this->api_interface = local_pfc_api_interface::Instance();
     }
 
     /**
@@ -385,15 +397,15 @@ class local_pfc
             $html = $name . ':<br/>';
             if (!$error) {
                 $count = count($response);
-                $html = $html . '<span style="color:#558b2f;">Working, received ' . $count . ' ' . $name . '</span>';
+                $html .= '<span style="color:#558b2f;">Working, received ' . $count . ' ' . $name . '</span>';
             } elseif (!$critical_error) {
-                $html = $html . '<pre style="color:#e65100;">' . $response->getOriginalMessage() . '<br/>';
+                $html .= '<pre style="color:#e65100;">' . $response->getOriginalMessage() . '<br/>';
                 if ($response->getResponseObject()) {
-                    $html = $html . '<p>' . $response->getResponseObject() . '</p>';
+                    $html .= '<p>' . $response->getResponseObject() . '</p>';
                 }
-                $html = $html . '</pre>';
+                $html .= '</pre>';
             } else {
-                $html = $html . '<pre style="color:#f00;">' . $response->getMessage() . '</pre>';
+                $html .= '<pre style="color:#f00;">' . $response->getMessage() . '</pre>';
             }
             $response = $html;
         }
@@ -409,32 +421,87 @@ class local_pfc
     {
         global $DB;
 
-        // first we create an object with all the calendars api data
+        // set synchronization date range depending on the optional param
+        $date_epoch = new DateTime('1970-01-01 00:00:01');
+        $date_last_synchronization = $update_all ? $date_epoch : local_pfc_config::Instance()->last_synchronization;
+        $date_now = new DateTime();
+
+        // we create an object with all the calendars api data
         $api_map = new stdClass();
-        $api_map->calendars = $this->api_interface->get_calendars();
-        $api_map->evaluations = $this->api_interface->get_evaluations();
+
+        // there are two big groups of data we need to retrieve, the first is the recent published calendars and all its
+        // evaluations, the other is the recent updated evaluations from published calendars
+        // first we get all published calendars
+        $api_map->calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now);
+
+        // then we filter the recent from the old published calendars here,
+        // since it's way faster than doing a http request for each
+        $recent_published_calendars = []; // abbreviation: rpc
+        $old_published_calendars = []; // abbreviation: opc
+        foreach ($api_map->calendars as $calendar) {
+            $updated_at = $calendar->get_updated_at();
+            if ($updated_at >= $date_last_synchronization && $updated_at < $date_now) {
+                $recent_published_calendars[] = $calendar;
+            } else {
+                $old_published_calendars[] = $calendar;
+            }
+        }
+
+        // evaluations from recent published calendars
+        // for these evaluations we don't apply the updated_at filter
+        $rpc_evaluations = [];
+        foreach ($recent_published_calendars as $calendar) {
+            $evaluations = $this->api_interface->get_evaluations_by_calendar($calendar->getId());
+            $rpc_evaluations = array_merge($rpc_evaluations, $evaluations);
+        }
+
+        // evaluations from old published calendars
+        // this time we need to apply the updated_at filter
+        $opc_evaluations = [];
+        foreach ($old_published_calendars as $calendar) {
+            $evaluations = $this->api_interface->get_evaluations_updated_by_calendar(
+                $date_last_synchronization, $date_now, $calendar->getId());
+            $opc_evaluations = array_merge($opc_evaluations, $evaluations);
+        }
+
+        // we got all the need evaluations, now its time to check for repeated evaluations and remove them,
+        // and finally store the final set in the api_map
+        foreach ($rpc_evaluations as $rpc_evaluation) {
+            $opc_key = null;
+            foreach ($opc_evaluations as $key => $opc_evaluation) {
+                if (strcmp($rpc_evaluation->getId(), $opc_evaluation->getId())) {
+                    $opc_key = $key;
+                    break;
+                }
+            }
+            if (is_null($opc_key)) {
+                unset($opc_evaluations[$opc_key]);
+            }
+        }
+
+        $api_map->evaluations = array_merge($rpc_evaluations, $opc_evaluations);
+
+        // we get the evaluation types just for the extra information to fill in the description of a event
         $api_map->evaluation_types = $this->api_interface->get_evaluation_types();
 
-        // for easy access, we create an object containing assoc arrays, ex: $api_assoc_map->calendars[$calendar_id]
+        // we create a map of id => object foreach element type, and then we store them in a single object
+        // resulting in something like: $api_assoc_map->calendars[$calendar_id]
         $api_assoc_map = new stdClass();
-        // calendars
-        $calendar_assoc_map = array();
+        // calendars map
+        $api_assoc_map->calendars = array();
         for ($i = 0; $i < count($api_map->calendars); $i++) {
-            $calendar_assoc_map[$api_map->calendars[$i]->getId()] = $api_map->calendars[$i];
+            $api_assoc_map->calendars[$api_map->calendars[$i]->getId()] = $api_map->calendars[$i];
         }
-        $api_assoc_map->calendars = $calendar_assoc_map;
-        // evaluations
-        $evaluations_assoc_map = array();
+        // evaluations map
+        $api_assoc_map->evaluations = array();
         for ($i = 0; $i < count($api_map->evaluations); $i++) {
-            $evaluations_assoc_map[$api_map->evaluations[$i]->getId()] = $api_map->evaluations[$i];
+            $api_assoc_map->evaluations[$api_map->evaluations[$i]->getId()] = $api_map->evaluations[$i];
         }
-        $api_assoc_map->evaluations = $evaluations_assoc_map;
-        // evaluation_types
-        $evaluation_types_assoc_map = array();
+        // evaluation_types map
+        $api_assoc_map->evaluation_types = array();
         for ($i = 0; $i < count($api_map->evaluation_types); $i++) {
-            $evaluation_types_assoc_map[$api_map->evaluation_types[$i]->getId()] = $api_map->evaluation_types[$i];
+            $api_assoc_map->evaluation_types[$api_map->evaluation_types[$i]->getId()] = $api_map->evaluation_types[$i];
         }
-        $api_assoc_map->evaluation_types = $evaluation_types_assoc_map;
 
         // instantiate the report object
         $result = new stdClass();
@@ -614,25 +681,36 @@ class local_pfc
             }
         }
 
+        // after the synchronization, we need to update the last synchronization parameter in the config
+        local_pfc_config::Instance()->last_synchronization = $date_now;
 
+        // now it's time to present the results
         if ($this->render_html) {
-            $html = "<p style='color: black'>Synchronized ( ";
-            $html = $html . "<b style='color:#4CAF50'>" . get_string('inserts', 'local_pfc') . ": " . $result->inserts . "</b> ";
-            $html = $html . "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_pfc') . ": " . $result->cleaned . " )</b>, ";
-            $html = $html . "<b style='color:#2196F3'>" . get_string('updates', 'local_pfc') . ": " . $result->updates . "</b>, ";
-            $html = $html . "<b style='color:#F44336'>" . get_string('errors', 'local_pfc') . ": " . $result->errors . "</b> ";
-            $html = $html . "<b style='color:#F44336'>( " . get_string('deleted', 'local_pfc') . ": " . $result->deleted . " )</b> ";
-            $html = $html . " )</p>";
-            foreach ($result->logs as $log) {
-                $html = $html . "<p>[" . $log->type . "] " . $log->message;
-                foreach ($log->params as $key => $value) {
-                    $html = $html . " [" . $key . " => " . $value . "]";
+
+            if ($result->inserts || $result->cleaned || $result->updates || $result->errors || $result->deleted) {
+                if ($update_all) {
+                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized_all', 'local_pfc') . " ( ";
+                } else {
+                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized', 'local_pfc') . " ( ";
                 }
-                $html = $html . "</p>";
+                $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_pfc') . ": " . $result->inserts . "</b> ";
+                $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_pfc') . ": " . $result->cleaned . " )</b>, ";
+                $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_pfc') . ": " . $result->updates . "</b>, ";
+                $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_pfc') . ": " . $result->errors . "</b> ";
+                $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_pfc') . ": " . $result->deleted . " )</b> ";
+                $html .= " )</p>";
+                foreach ($result->logs as $log) {
+                    $html .= "<p>[" . $log->type . "] " . $log->message;
+                    foreach ($log->params as $key => $value) {
+                        $html .= " [" . $key . " => " . $value . "]";
+                    }
+                    $html .= "</p>";
+                }
+            } else {
+                $html = "<p>" . get_string('synchronize_nothing_to_synchronize', 'local_pfc') . "</p>";
             }
             return $html;
         }
-
         return $result;
     }
 
@@ -672,29 +750,51 @@ class local_pfc
      * Updates the local_pfc_config singleton with the provided config provided
      * @see local_pfc_config::restore_defaults()
      * @param $config object Object containing the values used to update the local_pfc_config
-     * @return string|bool if set to render html, returns a message of task done, else returns true
+     * @return string|string[] If set to render html it returns html related to the success or the errors of the task,
+     *                else returns an array of strings containing all errors or empty if no errors.
      */
     public function update_config($config)
     {
-        if (!is_null($config->api_authorization_header_key) && !is_null($config->api_authorization_header_value)) {
+        $errors = array();
+        if (empty($config->api_authorization_header_key)) {
+            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_authorization_header_key', 'local_pfc'));
+        }
+        if (empty($config->api_authorization_header_value)) {
+            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_authorization_header_value', 'local_pfc'));
+        }
+        if (count($errors) == 0) {
             $auth_header = array($config->api_authorization_header_key => $config->api_authorization_header_value);
             local_pfc_config::Instance()->api_authorization_header = $auth_header;
         }
-        if (!is_null($config->api_host)) {
+        if (empty($config->api_host)) {
+            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_host', 'local_pfc'));
+        } else {
             local_pfc_config::Instance()->api_host = $config->api_host;
         }
         $api_paths = local_pfc_config::Instance()->api_paths;
         foreach ($api_paths as $key => $value) {
-            if (!is_null($config->{'path_' . $key})) {
+            if (empty($config->{'path_' . $key})) {
+                $name = get_string('config_api_paths', 'local_pfc') . ' - ' . get_string($key, 'local_pfc');
+                $errors[] = get_string('is_required', 'local_pfc', $name);
+            } else {
                 $api_paths[$key] = $config->{'path_' . $key};
             }
         }
         local_pfc_config::Instance()->api_paths = $api_paths;
 
+        $has_errors = count($errors) > 0;
+
         if ($this->render_html) {
-            return '<b style=\'color:#4CAF50\'>' . get_string('config_changes_saved', 'local_pfc') . '</b> ';
+            if ($has_errors) {
+                $html = '<p style="color: #F44336">';
+                $html .= implode('<br />', $errors);
+                $html .= '</p>';
+            } else {
+                $html = '<b style=\'color:#4CAF50\'>' . get_string('config_changes_saved', 'local_pfc') . '</b> ';
+            }
+            return $html;
         }
-        return true;
+        return $errors;
     }
 
     /**
@@ -713,7 +813,8 @@ class local_pfc
 }
 
 /**
- * Class local_pfc_api_interface
+ * This class provides an interface to easily access the calendars api features.
+ * It is a singleton that can be accessed through the Instance static method.
  * @category Class
  */
 class local_pfc_api_interface
@@ -737,7 +838,7 @@ class local_pfc_api_interface
     /**
      * local_pfc_api_interface constructor.
      */
-    public function __construct()
+    private function __construct()
     {
         $api_client = new \local_pfc\api_client();
         $this->calendar_api = new \local_pfc\api\calendar_api($api_client);
@@ -746,27 +847,142 @@ class local_pfc_api_interface
     }
 
     /**
+     * Call this method to get singleton
+     * @return local_pfc_api_interface
+     */
+    public static function Instance()
+    {
+        static $inst = null;
+        if ($inst === null) {
+            $inst = new local_pfc_api_interface();
+        }
+        return $inst;
+    }
+
+    /**
+     * Gets published calendars that were updated between the given dates.
+     * When any date parameters are omitted, it will retrieve all published calendars
+     * @param DateTime $datetime_start Sets the lowest value of the calendar update date time filter
+     * @param DateTime $datetime_end   Sets the highest value of the calendar update date time filter
+     * @param string   $q              (optional) Allows to make queries over several attributes
+     * @param string   $fields         (optional) Allows a selection of the attributes
+     * @param string   $sort           (optional) Allows sorting the results by attribute
      * @return \local_pfc\models\calendar[]
      */
-    function get_calendars()
+    function get_calendars_published_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null)
     {
-        return $this->calendar_api->get_calendars();
+        $arguments = array();
+        //$arguments['estado'] = 'PUBLICADO';
+        $arguments['updatedAt'] = $this->create_date_time_range_filter($datetime_start, $datetime_end, 'updatedAt');
+        return $this->get_calendars($q, $fields, $sort, $arguments);
     }
 
     /**
+     * Creates a DateTime range filter to use in the api requests
+     * @param DateTime $datetime_start Sets the lowest value of the date time range filter
+     * @param DateTime $datetime_end   Sets the highest value of the date time range filter
+     * @param string   $argument_name  Sets the name of the argument required to set a proper range
+     * @return string date range filter
+     */
+    private function create_date_time_range_filter($datetime_start, $datetime_end, $argument_name)
+    {
+        $date_filter = 'dateRange(';
+        $date_filter .= $datetime_start->format('Y-m-d H:i:s');
+        $date_filter .= ';' . $argument_name . ';';
+        $date_filter .= $datetime_end->format('Y-m-d H:i:s');
+        $date_filter .= ')';
+        return $date_filter;
+    }
+
+    /**
+     * Calls the calendar_api get_calendars method to get an array of calendars,
+     * based on the query, fields and sort parameters.
+     * @param string $q         (optional) Allows to make queries over several attributes
+     * @param string $fields    (optional) Allows a selection of the attributes
+     * @param string $sort      (optional) Allows sorting the results by attribute
+     * @param array  $arguments (optional) Allows custom arguments be passed to the query string
+     * @return \local_pfc\models\calendar[]
+     */
+    function get_calendars($q = null, $fields = null, $sort = null, $arguments = null)
+    {
+        return $this->calendar_api->get_calendars($q, $fields, $sort, $arguments);
+    }
+
+    /**
+     * Gets published calendars that were updated between the given dates.
+     * @param string $calendar_id Sets the lowest value of the calendar update date time filter
+     * @param string $q           (optional) Allows to make queries over several attributes
+     * @param string $fields      (optional) Allows a selection of the attributes
+     * @param string $sort        (optional) Allows sorting the results by attribute
      * @return \local_pfc\models\evaluation[]
      */
-    function get_evaluations()
+    function get_evaluations_by_calendar($calendar_id, $q = null, $fields = null, $sort = null)
     {
-        return $this->evaluation_api->get_evaluations();
+        $arguments['idCalendario'] = $calendar_id;
+        return $this->get_evaluations($q, $fields, $sort, $arguments);
     }
 
     /**
+     * Calls the evaluation_api get_evaluations method to get an array of evaluations,
+     * based on the query, fields and sort parameters.
+     * @param string $q         (optional) Allows to make queries over several attributes
+     * @param string $fields    (optional) Allows a selection of the attributes
+     * @param string $sort      (optional) Allows sorting the results by attribute
+     * @param array  $arguments (optional) Allows custom arguments be passed to the query string
+     * @return \local_pfc\models\evaluation[]
+     */
+    function get_evaluations($q = null, $fields = null, $sort = null, $arguments = null)
+    {
+        return $this->evaluation_api->get_evaluations($q, $fields, $sort, $arguments);
+    }
+
+    /**
+     * Gets published calendars that were updated between the given dates
+     * When any date parameters are omitted, it will retrieve all published calendars
+     * @param DateTime $datetime_start Sets the lowest value of the calendar update date time filter
+     * @param DateTime $datetime_end   Sets the highest value of the calendar update date time filter
+     * @param string   $calendar_id    Sets the lowest value of the calendar update date time filter
+     * @param string   $q              (optional) Allows to make queries over several attributes
+     * @param string   $fields         (optional) Allows a selection of the attributes
+     * @param string   $sort           (optional) Allows sorting the results by attribute
+     * @return \local_pfc\models\evaluation[]
+     */
+    function get_evaluations_updated_by_calendar($datetime_start, $datetime_end, $calendar_id, $q = null, $fields = null, $sort = null)
+    {
+        $arguments = array();
+        $arguments['idCalendario'] = $calendar_id;
+        $arguments['updatedAt'] = $this->create_date_time_range_filter($datetime_start, $datetime_end, 'updatedAt');
+        return $this->get_evaluations($q, $fields, $sort, $arguments);
+    }
+
+    /**
+     * Gets published calendars that were updated between the given dates
+     * When any date parameters are omitted, it will retrieve all published calendars
+     * @param DateTime $datetime_start Sets the lowest value of the calendar update date time filter
+     * @param DateTime $datetime_end   Sets the highest value of the calendar update date time filter
+     * @param string   $q              (optional) Allows to make queries over several attributes
+     * @param string   $fields         (optional) Allows a selection of the attributes
+     * @param string   $sort           (optional) Allows sorting the results by attribute
+     * @return \local_pfc\models\evaluation[]
+     */
+    function get_evaluations_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null)
+    {
+        $arguments = array();
+        $arguments['updatedAt'] = $this->create_date_time_range_filter($datetime_start, $datetime_end, 'updatedAt');
+        return $this->get_evaluations($q, $fields, $sort, $arguments);
+    }
+
+    /**
+     * Calls the evaluation_types_api get_evaluations_types method to get an array of evaluation types,
+     * based on the fields and sort parameters.
+     * @param string $fields    (optional) Allows a selection of the attributes
+     * @param string $sort      (optional) Allows sorting the results by attribute
+     * @param array  $arguments (optional) Allows custom arguments be passed to the query string
      * @return \local_pfc\models\evaluation_type[]
      */
-    function get_evaluation_types()
+    function get_evaluation_types($fields = null, $sort = null, $arguments = null)
     {
-        return $this->evaluation_type_api->get_evaluation_types();
+        return $this->evaluation_type_api->get_evaluation_types($fields, $sort, $arguments);
     }
 }
 

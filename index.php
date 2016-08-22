@@ -34,7 +34,7 @@ $synchronize_form_result = '';
 $synchronize_form = new local_pfc_synchronize_form($moodle_url);
 if ($data = $synchronize_form->get_data()) {
     $pfc = new local_pfc(true);
-    if (strcmp($data->synchronize, 'all')) {
+    if (strcmp($data->synchronize, 'all') === 0) {
         $synchronize_form_result = $pfc->synchronize_evaluation_calendars(true);
     } else {
         $synchronize_form_result = $pfc->synchronize_evaluation_calendars();

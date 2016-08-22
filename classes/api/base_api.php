@@ -82,10 +82,11 @@ class base_api
 
     public function callApiClient($resourcePath, $method, $queryParams, $responseType){
         $_header_accept = api_client::selectHeaderAccept(array('application/json'));
+        $headerParams = array();
         if (!is_null($_header_accept)) {
             $headerParams['Accept'] = $_header_accept;
         }
-        $headerParams['Content-Type'] = api_client::selectHeaderContentType(array());
+        //$headerParams['Content-Type'] = api_client::selectHeaderContentType(array());
 
         try {
             list($response, $statusCode, $httpHeader) = $this->apiClient->callApi(

@@ -12,11 +12,10 @@
 
 /**
  * [File Documentation]
- *
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_pfc;
@@ -25,9 +24,8 @@ defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class api_exception
- *
  * @category Class
- * @package local_pfc
+ * @package  local_pfc
  */
 class api_exception extends \moodle_exception
 {
@@ -52,7 +50,7 @@ class api_exception extends \moodle_exception
 
     /**
      * The deserialized response object
-     * @var $responseObject;
+     * @var $responseObject ;
      */
     protected $responseObject;
 
@@ -63,9 +61,19 @@ class api_exception extends \moodle_exception
      * @param string $responseHeaders HTTP response header
      * @param mixed  $responseBody    HTTP body of the server response either as Json or string
      */
-    public function __construct($message="", $code=0, $responseHeaders=null, $responseBody=null)
+    public function __construct($message = "", $code = 0, $responseHeaders = null, $responseBody = null)
     {
-        parent::__construct($code, 'local_pfc', '', '', $message);
+        $a = null;
+        if (!is_null($responseHeaders) || !is_null($responseBody)) {
+            $a = new \stdClass();
+            if (!empty($responseHeaders)) {
+                $a->headers = $responseHeaders;
+            }
+            if (!empty($responseBody)) {
+                $a->body = $responseBody;
+            }
+        }
+        parent::__construct($code, 'local_pfc', new \moodle_url('/local/pfc/'), $a, $message);
         $this->originalMessage = $message;
         $this->responseHeaders = $responseHeaders;
         $this->responseBody = $responseBody;
@@ -74,7 +82,6 @@ class api_exception extends \moodle_exception
 
     /**
      * Gets original exception Message for debug purposes.
-     *
      * @return string original exception Message for debug purposes.
      */
     public function getOriginalMessage()
@@ -84,7 +91,6 @@ class api_exception extends \moodle_exception
 
     /**
      * Gets the HTTP response header
-     *
      * @return string HTTP response header
      */
     public function getResponseHeaders()
@@ -94,12 +100,20 @@ class api_exception extends \moodle_exception
 
     /**
      * Gets the HTTP body of the server response either as Json or string
-     *
      * @return mixed HTTP body of the server response either as Json or string
      */
     public function getResponseBody()
     {
         return $this->responseBody;
+    }
+
+    /**
+     * Gets the deseralized response object (during deserialization)
+     * @return mixed the deserialized response object
+     */
+    public function getResponseObject()
+    {
+        return $this->responseObject;
     }
 
     /**
@@ -110,15 +124,5 @@ class api_exception extends \moodle_exception
     public function setResponseObject($obj)
     {
         $this->responseObject = $obj;
-    }
-
-    /**
-     * Gets the deseralized response object (during deserialization)
-     *
-     * @return mixed the deserialized response object
-     */
-    public function getResponseObject()
-    {
-        return $this->responseObject;
     }
 }

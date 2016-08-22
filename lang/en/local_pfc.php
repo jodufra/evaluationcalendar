@@ -10,7 +10,7 @@
 // You should have received a copy of the GNU General Public License along with Moodle. 
 // If not, see <http://www.gnu.org/licenses/>.
 
-$string['pluginname'] = 'Calendar fetcher';
+$string['pluginname'] = 'Evaluations calendar';
 $string['inserts'] = 'Inserts';
 $string['cleaned'] = 'Cleaned';
 $string['updates'] = 'Updates';
@@ -19,12 +19,13 @@ $string['deleted'] = 'Deleted';
 $string['synchronize'] = 'Synchronize';
 $string['calendars'] = 'Calendars';
 $string['evaluations'] = 'Evaluations';
-$string['evaluations_ucs'] = 'Evaluations of UC';
+$string['evaluations_ucs'] = 'UC Evaluations';
 $string['evaluation_types'] = 'Evaluation types';
 $string['evaluation_type'] = 'Evaluation type';
 $string['defaults_restored'] = 'Defaults Restored';
 $string['changes_saved'] = 'Changes were saved';
 $string['error_saving'] = 'Error saving changes';
+$string['is_required'] = '{$a} is required';
 $string['restore_defaults'] = 'Restore Defaults';
 $string['save'] = 'Save';
 
@@ -38,10 +39,14 @@ $string['synchronize_info'] = '<h3>Manual synchronization of evaluations.</h3>' 
 $string['synchronize_last_updated'] = 'Last Updated';
 $string['synchronize_all'] = 'All';
 $string['synchronize_submit'] = 'Submit';
+$string['synchronize_nothing_to_synchronize'] = 'Nothing to synchronize';
+$string['synchronize_synchronized'] = 'Synchronized';
+$string['synchronize_synchronized_all'] = 'All Synchronized';
 
 // Settings form
 $string['config_info'] = '<h3>Change or restore this plugin configuration.</h3>';
-$string['config_api_authorization_header'] = 'API Authorization Header';
+$string['config_api_authorization_header_key'] = 'API Authorization Header Key';
+$string['config_api_authorization_header_value'] = 'API Authorization Header Value';
 $string['config_api_host'] = 'API Host';
 $string['config_api_paths'] = 'API Url Paths';
 $string['config_defaults_restored'] = 'The configuration values were restored to it\'s defaults';

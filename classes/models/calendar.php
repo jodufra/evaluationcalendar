@@ -48,7 +48,8 @@ class calendar extends base_model
         'semestre' => 'string',
         'id_ep_aval' => 'int',
         'epoca_avaliacao' => 'string',
-        'estado' => 'string'
+        'estado' => 'string',
+        'updatedAt' =>'DateTime'
     );
 
     /**
@@ -67,7 +68,8 @@ class calendar extends base_model
         'semestre' => 'semestre',
         'id_ep_aval' => 'idEpAval',
         'epoca_avaliacao' => 'epocaAvaliacao',
-        'estado' => 'estado'
+        'estado' => 'estado',
+        'updatedAt' =>'updatedAt'
     );
 
     /**
@@ -86,7 +88,8 @@ class calendar extends base_model
         'semestre' => 'setSemestre',
         'id_ep_aval' => 'setIdEpAval',
         'epoca_avaliacao' => 'setEpocaAvaliacao',
-        'estado' => 'setEstado'
+        'estado' => 'setEstado',
+        'updatedAt' =>'set_updated_at'
     );
 
     /**
@@ -105,7 +108,8 @@ class calendar extends base_model
         'semestre' => 'getSemestre',
         'id_ep_aval' => 'getIdEpAval',
         'epoca_avaliacao' => 'getEpocaAvaliacao',
-        'estado' => 'getEstado'
+        'estado' => 'getEstado',
+        'updatedAt' =>'get_updated_at'
     );
 
     /**
@@ -222,6 +226,12 @@ class calendar extends base_model
      * @var string
      */
     protected $estado;
+
+    /**
+     * $updatedAt Datetime of last update
+     * @var \DateTime
+     */
+    protected $updatedAt;
 
 
     /**
@@ -500,6 +510,27 @@ class calendar extends base_model
             throw new api_exception("Invalid value for 'estado', must be one of 'PORELABORAR', 'EMELABORACAO', 'EMAPROVACAO', 'APROVADO', 'PUBLICADO'");
         }
         $this->estado = $estado;
+        return $this;
+    }
+
+    /**
+     * Gets updated at
+     * @return \DateTime
+     */
+    public function get_updated_at()
+    {
+        return $this->updatedAt;
+    }
+
+    /**
+     * Sets updated at
+     * @param \DateTime $updatedAt Updated at (DateTime("2016-05-12 17:40:04"))
+     * @return $this
+     */
+    public function set_updated_at($updatedAt)
+    {
+
+        $this->updatedAt = $updatedAt;
         return $this;
     }
 }

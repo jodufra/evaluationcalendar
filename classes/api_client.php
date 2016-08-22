@@ -12,11 +12,10 @@
 
 /**
  * [File Documentation]
- *
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_pfc;
@@ -29,8 +28,6 @@ require_once($CFG->dirroot.'/local/pfc/classes/api_object_serializer.php');
 require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');*/
 
 /**
- * 
- *
  * @category Class
  * @package  local_pfc
  */
@@ -66,6 +63,38 @@ class api_client
     }
 
     /**
+     * Return the header 'Accept' based on an array of Accept provided
+     * @param string[] $accept Array of header
+     * @return string Accept (e.g. application/json)
+     */
+    public static function selectHeaderAccept($accept)
+    {
+        if (count($accept) === 0 or (count($accept) === 1 and $accept[0] === '')) {
+            return null;
+        } elseif (preg_grep("/application\/json/i", $accept)) {
+            return 'application/json';
+        } else {
+            return implode(',', $accept);
+        }
+    }
+
+    /**
+     * Return the content type based on an array of content-type provided
+     * @param string[] $content_type Array fo content-type
+     * @return string Content-Type (e.g. application/json)
+     */
+    public static function selectHeaderContentType($content_type)
+    {
+        if (count($content_type) === 0 or (count($content_type) === 1 and $content_type[0] === '')) {
+            return 'application/json';
+        } elseif (preg_grep("/application\/json/i", $content_type)) {
+            return 'application/json';
+        } else {
+            return implode(',', $content_type);
+        }
+    }
+
+    /**
      * Get the config
      * @return api_configuration
      */
@@ -98,7 +127,7 @@ class api_client
         }
 
         if (isset($prefix)) {
-            $keyWithPrefix = $prefix." ".$apiKey;
+            $keyWithPrefix = $prefix . " " . $apiKey;
         } else {
             $keyWithPrefix = $apiKey;
         }
@@ -126,7 +155,7 @@ class api_client
             curl_setopt($curl, CURLOPT_TIMEOUT, $this->config->getCurlTimeout());
         }
 
-        // return the result on success, rather than just true 
+        // return the result on success, rather than just true
         curl_setopt($curl, CURLOPT_RETURNTRANSFER, 1);
 
         // construct the http header
@@ -136,7 +165,7 @@ class api_client
             (array)$headerParams
         );
         foreach ($headerParams as $key => $val) {
-            $headers[] = $key.': '.$val;
+            $headers[] = $key . ': ' . $val;
         }
         curl_setopt($curl, CURLOPT_HTTPHEADER, $headers);
 
@@ -151,7 +180,7 @@ class api_client
         // set url and query string
         $url = $this->config->getHost() . $resourcePath;
         if (!empty($queryParams)) {
-            $url = ($url . '?' . http_build_query($queryParams));
+            $url = ($url . '?' . http_build_query($queryParams, null, '&', PHP_QUERY_RFC3986));
         }
         curl_setopt($curl, CURLOPT_URL, $url);
 
@@ -164,11 +193,11 @@ class api_client
         $http_header = $this->http_parse_headers(substr($response, 0, $http_header_size));
         $http_body = substr($response, $http_header_size);
         $response_info = curl_getinfo($curl);
-        $error_num = curl_errno ($curl);
+        $error_num = curl_errno($curl);
         $error_msg = curl_error($curl);
         curl_close($curl);
 
-        if($error_num){
+        if ($error_num) {
             throw new api_exception("[$error_num] - cURL error: $error_msg", 0, null, null);
         }
 
@@ -176,15 +205,13 @@ class api_client
         $http_code = $response_info['http_code'];
         if ($http_code == 0) {
             throw new api_exception("API call to $url timed out", 0, null, null);
-        }
-        elseif ($http_code >= 200 && $http_code <= 299 ) {
+        } elseif ($http_code >= 200 && $http_code <= 299) {
             if ($responseType == 'string') {
                 return array($http_body, $http_code, $http_header);
             }
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
             return array($data, $http_code, $http_header);
-        }
-        else {
+        } else {
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);
             throw new api_exception(
                 "[$http_code] Error connecting to the API ($url)", $http_code, $http_header, $data
@@ -193,46 +220,8 @@ class api_client
     }
 
     /**
-     * Return the header 'Accept' based on an array of Accept provided
-     *
-     * @param string[] $accept Array of header
-     *
-     * @return string Accept (e.g. application/json)
-     */
-    public static function selectHeaderAccept($accept)
-    {
-        if (count($accept) === 0 or (count($accept) === 1 and $accept[0] === '')) {
-            return null;
-        } elseif (preg_grep("/application\/json/i", $accept)) {
-            return 'application/json';
-        } else {
-            return implode(',', $accept);
-        }
-    }
-
-    /**
-     * Return the content type based on an array of content-type provided
-     *
-     * @param string[] $content_type Array fo content-type
-     *
-     * @return string Content-Type (e.g. application/json)
-     */
-    public static function selectHeaderContentType($content_type)
-    {
-        if (count($content_type) === 0 or (count($content_type) === 1 and $content_type[0] === '')) {
-            return 'application/json';
-        } elseif (preg_grep("/application\/json/i", $content_type)) {
-            return 'application/json';
-        } else {
-            return implode(',', $content_type);
-        }
-    }
-
-    /**
      * Return an array of HTTP response headers
-     *
      * @param string $raw_headers A string of raw HTTP response headers
-     *
      * @return string[] Array of HTTP response headers
      */
     protected function http_parse_headers($raw_headers)
@@ -240,12 +229,10 @@ class api_client
         $headers = array();
         $key = '';
 
-        foreach(explode("\n", $raw_headers) as $i => $h)
-        {
+        foreach (explode("\n", $raw_headers) as $i => $h) {
             $h = explode(':', $h, 2);
 
-            if (isset($h[1]))
-            {
+            if (isset($h[1])) {
                 if (!isset($headers[$h[0]]))
                     $headers[$h[0]] = trim($h[1]);
                 elseif (is_array($headers[$h[0]]))
@@ -254,13 +241,12 @@ class api_client
                     $headers[$h[0]] = array_merge(array($headers[$h[0]]), array(trim($h[1])));
 
                 $key = $h[0];
-            }
-            else
-            {
+            } else {
                 if (substr($h[0], 0, 1) == "\t")
-                    $headers[$key] .= "\r\n\t".trim($h[0]);
+                    $headers[$key] .= "\r\n\t" . trim($h[0]);
                 elseif (!$key)
-                    $headers[0] = trim($h[0]);trim($h[0]);
+                    $headers[0] = trim($h[0]);
+                trim($h[0]);
             }
         }
 
