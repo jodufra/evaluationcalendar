@@ -13,7 +13,7 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc
+ * @package local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>

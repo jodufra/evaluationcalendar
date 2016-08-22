@@ -13,24 +13,24 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc\api
+ * @package local_evaluationcalendar\api
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc\api;
-use local_pfc\api_client;
-use local_pfc\api_exception;
-use local_pfc\api_object_serializer;
+namespace local_evaluationcalendar\api;
+use local_evaluationcalendar\api_client;
+use local_evaluationcalendar\api_exception;
+use local_evaluationcalendar\api_object_serializer;
 
 
 /**
  * Class base_api
  *
  * @category Class
- * @package local_pfc\api
+ * @package local_evaluationcalendar\api
  */
 class base_api
 {
@@ -38,7 +38,7 @@ class base_api
      * Class path of the returning model of the api
      * @var string
      */
-    private static $_error_model = '\local_pfc\models\error';
+    private static $_error_model = '\local_evaluationcalendar\models\error';
 
     /**
      * API Client

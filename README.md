@@ -1,2 +1,2 @@
-# pfc
+# evaluationcalendar
 Plugin moodle

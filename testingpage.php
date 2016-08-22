@@ -12,7 +12,7 @@
 
 /**
  * [File Documentation]
- * @package   local_pfc
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
@@ -22,16 +22,16 @@
 global $CFG, $OUTPUT;
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/local/pfc/lib.php');
+require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
 // Initialize admin page
-admin_externalpage_setup('local_pfc');
+admin_externalpage_setup('local_evaluationcalendar');
 
 
 $start = new DateTime("2000-01-01 00:00:00");
 $end = new DateTime();
 
-var_dump(local_pfc_api_interface::Instance()->get_evaluations_updated_by_calendar($start, $end, "d44691e92f7d48c486aeef88b393db34"));
+var_dump(local_evaluationcalendar_api_interface::Instance()->get_evaluations_updated_by_calendar($start, $end, "d44691e92f7d48c486aeef88b393db34"));
 
 
 

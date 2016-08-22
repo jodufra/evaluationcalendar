@@ -12,24 +12,24 @@
 
 /**
  * [File Documentation]
- * @package   local_pfc\api
+ * @package   local_evaluationcalendar\api
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc\api;
+namespace local_evaluationcalendar\api;
 
-use local_pfc\api_client;
-use local_pfc\api_exception;
-use local_pfc\models\calendar;
+use local_evaluationcalendar\api_client;
+use local_evaluationcalendar\api_exception;
+use local_evaluationcalendar\models\calendar;
 
 
 /**
  * Class calendar_api
  * @category Class
- * @package  local_pfc\api
+ * @package  local_evaluationcalendar\api
  */
 class calendar_api extends base_api
 {
@@ -38,7 +38,7 @@ class calendar_api extends base_api
      * Class path of the returning model of the api
      * @var string
      */
-    private static $_model = '\local_pfc\models\calendar';
+    private static $_model = '\local_evaluationcalendar\models\calendar';
 
     /**
      * Constructor
@@ -78,7 +78,7 @@ class calendar_api extends base_api
     {
 
         // parse inputs
-        $resourcePath = \local_pfc_config::Instance()->api_paths['calendars'];
+        $resourcePath = \local_evaluationcalendar_config::Instance()->api_paths['calendars'];
         $queryParams = array();
 
         // query params

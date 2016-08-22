@@ -12,7 +12,7 @@
 
 /**
  * [File Documentation]
- * @package   local_pfc
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
@@ -25,10 +25,10 @@ require_once $CFG->libdir . '/formslib.php';
 
 
 /**
- * Class local_pfc_synchronize_calendars_form
+ * Class local_evaluationcalendar_synchronize_calendars_form
  * @category Class
  */
-class local_pfc_synchronize_form extends moodleform
+class local_evaluationcalendar_synchronize_form extends moodleform
 {
 
     /**
@@ -39,27 +39,27 @@ class local_pfc_synchronize_form extends moodleform
         $mform = $this->_form;
 
         // information
-        $mform->addElement('static', '', '', get_string('synchronize_info', 'local_pfc'));
+        $mform->addElement('static', '', '', get_string('synchronize_info', 'local_evaluationcalendar'));
 
         // radio buttons
         $requestTypes = array();
         $requestTypes[] = $mform->createElement('radio', 'synchronize', '',
-            get_string('synchronize_last_updated', 'local_pfc'), 'last_updated');
+            get_string('synchronize_last_updated', 'local_evaluationcalendar'), 'last_updated');
         $requestTypes[] = $mform->createElement('radio', 'synchronize', '',
-            get_string('synchronize_all', 'local_pfc'), 'all');
-        $mform->addGroup($requestTypes, 'Synchronize', get_string('synchronize', 'local_pfc'), array(' '), false);
+            get_string('synchronize_all', 'local_evaluationcalendar'), 'all');
+        $mform->addGroup($requestTypes, 'Synchronize', get_string('synchronize', 'local_evaluationcalendar'), array(' '), false);
         $mform->setDefault('synchronize', 'last_updated');
 
         // submit button
-        $mform->addElement('submit', 'submitbutton', get_string('synchronize_submit', 'local_pfc'));
+        $mform->addElement('submit', 'submitbutton', get_string('synchronize_submit', 'local_evaluationcalendar'));
     }
 }
 
 /**
- * Class local_pfc_check_api_form
+ * Class local_evaluationcalendar_check_api_form
  * @category Class
  */
-class local_pfc_config_form extends moodleform
+class local_evaluationcalendar_config_form extends moodleform
 {
 
     /**
@@ -76,7 +76,7 @@ class local_pfc_config_form extends moodleform
             $elem = $mform->getElement('restore_defaults');
             $value = $elem->getValue();
             if (!empty($value)) {
-                $data = local_pfc_config::Instance()->generate_form_data();
+                $data = local_evaluationcalendar_config::Instance()->generate_form_data();
                 foreach ($data as $key => $value) {
                     $elem = $mform->getElement($key);
                     $elem->setValue($value);
@@ -95,39 +95,39 @@ class local_pfc_config_form extends moodleform
         $mform = $this->_form;
 
         // static info
-        $mform->addElement('static', '', '', get_string('config_info', 'local_pfc'));
+        $mform->addElement('static', '', '', get_string('config_info', 'local_evaluationcalendar'));
 
         // container to show result
         $mform->addElement('static', 'result', '', '');
 
         // auth header
-        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header_key', 'local_pfc'), array('size' => '24'));
-        $mform->addElement('text', 'api_authorization_header_value', get_string('config_api_authorization_header_value', 'local_pfc'), array('size' => '64'));
+        $mform->addElement('text', 'api_authorization_header_key', get_string('config_api_authorization_header_key', 'local_evaluationcalendar'), array('size' => '24'));
+        $mform->addElement('text', 'api_authorization_header_value', get_string('config_api_authorization_header_value', 'local_evaluationcalendar'), array('size' => '64'));
         $mform->setType('api_authorization_header_key', PARAM_NOTAGS);
         $mform->setType('api_authorization_header_value', PARAM_NOTAGS);
 
         // host
-        $mform->addElement('text', 'api_host', get_string('config_api_host', 'local_pfc'), array('size' => '64'));
+        $mform->addElement('text', 'api_host', get_string('config_api_host', 'local_evaluationcalendar'), array('size' => '64'));
         $mform->setType('api_host', PARAM_NOTAGS);
 
         // paths
-        $mform->addElement('static', '', '', get_string('config_api_paths', 'local_pfc'));
-        foreach (local_pfc_config::Instance()->api_paths as $key => $value) {
-            $mform->addElement('text', 'path_' . $key, get_string($key, 'local_pfc'), array('size' => '40'));
+        $mform->addElement('static', '', '', get_string('config_api_paths', 'local_evaluationcalendar'));
+        foreach (local_evaluationcalendar_config::Instance()->api_paths as $key => $value) {
+            $mform->addElement('text', 'path_' . $key, get_string($key, 'local_evaluationcalendar'), array('size' => '40'));
             $mform->setType('path_' . $key, PARAM_NOTAGS);
         }
 
         // buttons
-        $mform->addElement('submit', 'restore_defaults', get_string('restore_defaults', 'local_pfc'));
-        $mform->addElement('submit', 'submitbutton', get_string('save', 'local_pfc'));
+        $mform->addElement('submit', 'restore_defaults', get_string('restore_defaults', 'local_evaluationcalendar'));
+        $mform->addElement('submit', 'submitbutton', get_string('save', 'local_evaluationcalendar'));
     }
 }
 
 
 /**
  * Manage the plugin settings
- * This class provides the required functionality in order to manage the local_pfc_config.
- * The local_pfc_config is the container of this plugin's settings
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_config.
+ * The local_evaluationcalendar_config is the container of this plugin's settings
  * It is a singleton that can be accessed through the Instance static method.
  * @category Class
  * @property array    $api_authorization_header
@@ -135,7 +135,7 @@ class local_pfc_config_form extends moodleform
  * @property array    $api_paths
  * @property DateTime $last_synchronization
  */
-final class local_pfc_config
+final class local_evaluationcalendar_config
 {
 
     /** @var string Default API authorization header */
@@ -154,14 +154,14 @@ final class local_pfc_config
     private $properties = null;
 
     /**
-     * Instantiates a new local_pfc_config
+     * Instantiates a new local_evaluationcalendar_config
      */
     private function __construct()
     {
         $this->properties = new stdClass();
-        $this->properties->api_authorization_header = local_pfc_config::$DEFAULT_API_AUTHORIZATION_HEADER;
-        $this->properties->api_host = local_pfc_config::$DEFAULT_API_HOST;
-        $this->properties->api_paths = local_pfc_config::$DEFAULT_API_PATHS;
+        $this->properties->api_authorization_header = local_evaluationcalendar_config::$DEFAULT_API_AUTHORIZATION_HEADER;
+        $this->properties->api_host = local_evaluationcalendar_config::$DEFAULT_API_HOST;
+        $this->properties->api_paths = local_evaluationcalendar_config::$DEFAULT_API_PATHS;
         $this->properties->last_synchronization = new DateTime('1970-01-01 00:00:01');
         $this->read();
     }
@@ -172,7 +172,7 @@ final class local_pfc_config
     private function read()
     {
         global $DB;
-        $lines = $DB->get_records('local_pfc_config');
+        $lines = $DB->get_records('evaluationcalendar_config');
         foreach ($lines as $line) {
             $value = json_decode($line->value);
             if ($line->name === 'last_synchronization') {
@@ -207,7 +207,7 @@ final class local_pfc_config
      * Properties set method
      * Attempts to call a set_$key method if one exists otherwise falls back
      * to simply set the property
-     * @see local_pfc_config::update()
+     * @see local_evaluationcalendar_config::update()
      * @param string $key   property name
      * @param mixed  $value value of the property
      */
@@ -222,27 +222,27 @@ final class local_pfc_config
     }
 
     /**
-     * Update or create an local_pfc_config within the database
+     * Update or create an local_evaluationcalendar_config within the database
      * Pass in a key containing the config key and the value to be updated. It search the database for a similar key,
      * if found will update it else will insert it into the database
-     * @param string $key key attribute of a local_pfc_config
+     * @param string $key key attribute of a local_evaluationcalendar_config
      * @return bool event created or updated with success
      */
     private function update($key)
     {
         global $DB;
         $value = json_encode($this->properties->{$key});
-        $line = $DB->get_record('local_pfc_config', array('name' => $key));
+        $line = $DB->get_record('evaluationcalendar_config', array('name' => $key));
         if ($line) {
             // Update
             $line->value = $value;
-            return $DB->update_record('local_pfc_config', $line);
+            return $DB->update_record('evaluationcalendar_config', $line);
         } else {
             // Insert
             $line = new stdClass();
             $line->name = $key;
             $line->value = $value;
-            return $DB->insert_record('local_pfc_config', $line);
+            return $DB->insert_record('evaluationcalendar_config', $line);
         }
     }
 
@@ -259,13 +259,13 @@ final class local_pfc_config
 
     /**
      * Sets the properties for their default value using the dynamic _set function
-     * @see local_pfc_config::_set()
+     * @see local_evaluationcalendar_config::_set()
      */
     public function restore_defaults()
     {
-        $this->api_authorization_header = local_pfc_config::$DEFAULT_API_AUTHORIZATION_HEADER;
-        $this->api_host = local_pfc_config::$DEFAULT_API_HOST;
-        $this->api_paths = local_pfc_config::$DEFAULT_API_PATHS;
+        $this->api_authorization_header = local_evaluationcalendar_config::$DEFAULT_API_AUTHORIZATION_HEADER;
+        $this->api_host = local_evaluationcalendar_config::$DEFAULT_API_HOST;
+        $this->api_paths = local_evaluationcalendar_config::$DEFAULT_API_PATHS;
     }
 
     /**
@@ -279,7 +279,7 @@ final class local_pfc_config
         $result['api_authorization_header_key'] = $first_key;
         $result['api_authorization_header_value'] = $this->properties->api_authorization_header[$first_key];
         $result['api_host'] = $this->properties->api_host;
-        foreach (local_pfc_config::Instance()->api_paths as $key => $value) {
+        foreach (local_evaluationcalendar_config::Instance()->api_paths as $key => $value) {
             $result['path_' . $key] = $value;
         }
         return $result;
@@ -287,23 +287,23 @@ final class local_pfc_config
 
     /**
      * Call this method to get singleton
-     * @return local_pfc_config
+     * @return local_evaluationcalendar_config
      */
     public static function Instance()
     {
         static $inst = null;
         if ($inst === null) {
-            $inst = new local_pfc_config();
+            $inst = new local_evaluationcalendar_config();
         }
         return $inst;
     }
 }
 
 /**
- * Class local_pfc
+ * Class local_evaluationcalendar
  * @category Class
  */
-class local_pfc
+class local_evaluationcalendar
 {
 
     /**
@@ -321,24 +321,24 @@ class local_pfc
     private $render_html;
 
     /**
-     * @var local_pfc_api_interface
+     * @var local_evaluationcalendar_api_interface
      */
     private $api_interface;
 
     /**
-     * local_pfc constructor.
+     * local_evaluationcalendar constructor.
      * @param $render_html
      */
     public function __construct($render_html = false)
     {
         $this->render_html = $render_html;
-        $this->api_interface = local_pfc_api_interface::Instance();
+        $this->api_interface = local_evaluationcalendar_api_interface::Instance();
     }
 
     /**
      * @param $type
      * @return array|string
-     * @throws \local_pfc\api_exception
+     * @throws \local_evaluationcalendar\api_exception
      * @throws moodle_exception
      */
     function check_api_interface($type = '')
@@ -362,7 +362,7 @@ class local_pfc
     /**
      * @param $type
      * @return string
-     * @throws \local_pfc\api_exception
+     * @throws \local_evaluationcalendar\api_exception
      * @throws coding_exception
      * @throws moodle_exception
      */
@@ -377,7 +377,7 @@ class local_pfc
             if (is_null($response)) {
                 throw new moodle_exception("API request returned null.");
             }
-        } catch (\local_pfc\api_exception $e) {
+        } catch (\local_evaluationcalendar\api_exception $e) {
             if (!$this->render_html) {
                 throw $e;
             }
@@ -393,7 +393,7 @@ class local_pfc
         }
 
         if ($this->render_html) {
-            $name = get_string($type, 'local_pfc');
+            $name = get_string($type, 'local_evaluationcalendar');
             $html = $name . ':<br/>';
             if (!$error) {
                 $count = count($response);
@@ -423,7 +423,7 @@ class local_pfc
 
         // set synchronization date range depending on the optional param
         $date_epoch = new DateTime('1970-01-01 00:00:01');
-        $date_last_synchronization = $update_all ? $date_epoch : local_pfc_config::Instance()->last_synchronization;
+        $date_last_synchronization = $update_all ? $date_epoch : local_evaluationcalendar_config::Instance()->last_synchronization;
         $date_now = new DateTime();
 
         // we create an object with all the calendars api data
@@ -518,22 +518,22 @@ class local_pfc
         foreach ($api_map->evaluations as $evaluation) {
             // this array will contain the tasks that need to be executed for each evaluation
             $tasks = new stdClass();
-            $tasks->dirty_event_keys = array(); // "array keys" of $pfc_events that need cleaning
+            $tasks->dirty_event_keys = array(); // "array keys" of $evaluationcalendar_events that need cleaning
             $tasks->dirty_calendar_keys = array(); // "array keys" of $calendar_events that need cleaning
             $tasks->insert_keys = array(); // "array keys" of $courses that require an evaluation event insert
             $tasks->update_keys = array(); // "array keys" of $calendar_events that will be updated
 
-            // retrieve all pfc events with the given evaluation id
-            $pfc_events = local_pfc_event::read_from_evaluation_id($evaluation->getId());
+            // retrieve all evaluationcalendar events with the given evaluation id
+            $evaluationcalendar_events = local_evaluationcalendar_event::read_from_evaluation_id($evaluation->getId());
 
             // retrieve the courses which idnumber starts with the siges code and ends with underscore and something
             $courses = $DB->get_records_select('course', "idnumber LIKE '" . $evaluation->getCodigoSiges() . "\_%'");
             if (empty($courses)) {
-                if (!empty($pfc_events)) {
+                if (!empty($evaluationcalendar_events)) {
                     // the evaluation siges code was updated and since there are no courses to match the siges code
                     // they need to be deleted
-                    foreach ($pfc_events as $pfc_event) {
-                        $pfc_event->delete(true);
+                    foreach ($evaluationcalendar_events as $evaluationcalendar_event) {
+                        $evaluationcalendar_event->delete(true);
                         $result->deleted++;
                     }
                 }
@@ -546,14 +546,14 @@ class local_pfc
                 continue;
             }
 
-            // retrieve all calendar events related with the pfc events
+            // retrieve all calendar events related with the evaluationcalendar events
             $calendar_events = array();
-            foreach ($pfc_events as $pfc_event_key => $pfc_event) {
+            foreach ($evaluationcalendar_events as $evaluationcalendar_event_key => $evaluationcalendar_event) {
                 try {
-                    $calendar_event = calendar_event::load($pfc_event->eventid);
+                    $calendar_event = calendar_event::load($evaluationcalendar_event->eventid);
                     array_push($calendar_events, $calendar_event);
                 } catch (Exception $e) {
-                    array_push($tasks->dirty_event_keys, $pfc_event_key);
+                    array_push($tasks->dirty_event_keys, $evaluationcalendar_event_key);
                 }
             }
 
@@ -573,11 +573,11 @@ class local_pfc
 
             // clean the calendar_events
             foreach ($tasks->dirty_calendar_keys as $key => $calendar_event_key) {
-                // since we are going to delete the calendar event we need to delete the related pfc event, if any
-                // so we get the array key to use in the clean pfc_events stage
-                foreach ($pfc_events as $pfc_event_key => $pfc_event) {
-                    if ($calendar_events[$calendar_event_key]->id == $pfc_event->eventid) {
-                        array_push($tasks->dirty_event_keys, $pfc_event_key);
+                // since we are going to delete the calendar event we need to delete the related evaluationcalendar event, if any
+                // so we get the array key to use in the clean evaluationcalendar_events stage
+                foreach ($evaluationcalendar_events as $evaluationcalendar_event_key => $evaluationcalendar_event) {
+                    if ($calendar_events[$calendar_event_key]->id == $evaluationcalendar_event->eventid) {
+                        array_push($tasks->dirty_event_keys, $evaluationcalendar_event_key);
                         break;
                     }
                 }
@@ -586,10 +586,10 @@ class local_pfc
                 unset($calendar_events[$calendar_event_key]);
             }
 
-            // clean the pfc_events
-            foreach ($tasks->dirty_event_keys as $key => $pfc_event_key) {
-                $pfc_events[$pfc_event_key]->delete();
-                unset($pfc_events[$pfc_event_key]);
+            // clean the evaluationcalendar_events
+            foreach ($tasks->dirty_event_keys as $key => $evaluationcalendar_event_key) {
+                $evaluationcalendar_events[$evaluationcalendar_event_key]->delete();
+                unset($evaluationcalendar_events[$evaluationcalendar_event_key]);
                 $result->cleaned++;
             }
 
@@ -613,7 +613,7 @@ class local_pfc
 
             // insert
             foreach ($tasks->insert_keys as $key => $course_key) {
-                $pfc_event = new local_pfc_event();
+                $evaluationcalendar_event = new local_evaluationcalendar_event();
                 $calendar_event = new calendar_event();
 
                 // set default values
@@ -641,16 +641,16 @@ class local_pfc
                     $result->errors++;
                     continue;
                 }
-                // then the pfc, since we have all we need
-                $pfc_event->eventid = $calendar_event->id;
-                $pfc_event->evaluationid = $evaluation->getId();
-                $pfc_event->sigescode = $evaluation->getCodigoSiges();
-                $pfc_event = local_pfc_event::create($pfc_event->properties());
-                if (!$pfc_event) {
+                // then the evaluationcalendar, since we have all we need
+                $evaluationcalendar_event->eventid = $calendar_event->id;
+                $evaluationcalendar_event->evaluationid = $evaluation->getId();
+                $evaluationcalendar_event->sigescode = $evaluation->getCodigoSiges();
+                $evaluationcalendar_event = local_evaluationcalendar_event::create($evaluationcalendar_event->properties());
+                if (!$evaluationcalendar_event) {
                     $log = new stdClass();
                     $log->type = 'Error';
-                    $log->message = 'Error inserting pfc event.';
-                    $log->params = ['pfc_event' => $pfc_event];
+                    $log->message = 'Error inserting evaluationcalendar event.';
+                    $log->params = ['evaluationcalendar_event' => $evaluationcalendar_event];
                     array_push($result->logs, $log);
                     $result->errors++;
                     continue;
@@ -682,22 +682,22 @@ class local_pfc
         }
 
         // after the synchronization, we need to update the last synchronization parameter in the config
-        local_pfc_config::Instance()->last_synchronization = $date_now;
+        local_evaluationcalendar_config::Instance()->last_synchronization = $date_now;
 
         // now it's time to present the results
         if ($this->render_html) {
 
             if ($result->inserts || $result->cleaned || $result->updates || $result->errors || $result->deleted) {
                 if ($update_all) {
-                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized_all', 'local_pfc') . " ( ";
+                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized_all', 'local_evaluationcalendar') . " ( ";
                 } else {
-                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized', 'local_pfc') . " ( ";
+                    $html = "<p style='color: black'>" . get_string('synchronize_synchronized', 'local_evaluationcalendar') . " ( ";
                 }
-                $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_pfc') . ": " . $result->inserts . "</b> ";
-                $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_pfc') . ": " . $result->cleaned . " )</b>, ";
-                $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_pfc') . ": " . $result->updates . "</b>, ";
-                $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_pfc') . ": " . $result->errors . "</b> ";
-                $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_pfc') . ": " . $result->deleted . " )</b> ";
+                $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_evaluationcalendar') . ": " . $result->inserts . "</b> ";
+                $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_evaluationcalendar') . ": " . $result->cleaned . " )</b>, ";
+                $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_evaluationcalendar') . ": " . $result->updates . "</b>, ";
+                $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_evaluationcalendar') . ": " . $result->errors . "</b> ";
+                $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_evaluationcalendar') . ": " . $result->deleted . " )</b> ";
                 $html .= " )</p>";
                 foreach ($result->logs as $log) {
                     $html .= "<p>[" . $log->type . "] " . $log->message;
@@ -707,7 +707,7 @@ class local_pfc
                     $html .= "</p>";
                 }
             } else {
-                $html = "<p>" . get_string('synchronize_nothing_to_synchronize', 'local_pfc') . "</p>";
+                $html = "<p>" . get_string('synchronize_nothing_to_synchronize', 'local_evaluationcalendar') . "</p>";
             }
             return $html;
         }
@@ -717,14 +717,14 @@ class local_pfc
 
     /**
      * @param $api_map        object
-     * @param $evaluation     \local_pfc\models\evaluation
+     * @param $evaluation     \local_evaluationcalendar\models\evaluation
      * @param $calendar_event calendar_event
      * @return calendar_event
      */
     private function edit_calendar_event($api_map, $evaluation, $calendar_event)
     {
         // first we get the type of evaluation
-        $evaluation_type = \local_pfc\models\evaluation_type::select_instance_from_array(
+        $evaluation_type = \local_evaluationcalendar\models\evaluation_type::select_instance_from_array(
             $api_map->evaluation_types, 'id', $evaluation->getIdTipoAvaliacao());
         // then we set the name
         $calendar_event->name = (!is_null($evaluation_type) ? $evaluation_type->getAbreviatura() : '');
@@ -747,9 +747,9 @@ class local_pfc
 
 
     /**
-     * Updates the local_pfc_config singleton with the provided config provided
-     * @see local_pfc_config::restore_defaults()
-     * @param $config object Object containing the values used to update the local_pfc_config
+     * Updates the local_evaluationcalendar_config singleton with the provided config provided
+     * @see local_evaluationcalendar_config::restore_defaults()
+     * @param $config object Object containing the values used to update the local_evaluationcalendar_config
      * @return string|string[] If set to render html it returns html related to the success or the errors of the task,
      *                else returns an array of strings containing all errors or empty if no errors.
      */
@@ -757,30 +757,30 @@ class local_pfc
     {
         $errors = array();
         if (empty($config->api_authorization_header_key)) {
-            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_authorization_header_key', 'local_pfc'));
+            $errors[] = get_string('is_required', 'local_evaluationcalendar', get_string('config_api_authorization_header_key', 'local_evaluationcalendar'));
         }
         if (empty($config->api_authorization_header_value)) {
-            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_authorization_header_value', 'local_pfc'));
+            $errors[] = get_string('is_required', 'local_evaluationcalendar', get_string('config_api_authorization_header_value', 'local_evaluationcalendar'));
         }
         if (count($errors) == 0) {
             $auth_header = array($config->api_authorization_header_key => $config->api_authorization_header_value);
-            local_pfc_config::Instance()->api_authorization_header = $auth_header;
+            local_evaluationcalendar_config::Instance()->api_authorization_header = $auth_header;
         }
         if (empty($config->api_host)) {
-            $errors[] = get_string('is_required', 'local_pfc', get_string('config_api_host', 'local_pfc'));
+            $errors[] = get_string('is_required', 'local_evaluationcalendar', get_string('config_api_host', 'local_evaluationcalendar'));
         } else {
-            local_pfc_config::Instance()->api_host = $config->api_host;
+            local_evaluationcalendar_config::Instance()->api_host = $config->api_host;
         }
-        $api_paths = local_pfc_config::Instance()->api_paths;
+        $api_paths = local_evaluationcalendar_config::Instance()->api_paths;
         foreach ($api_paths as $key => $value) {
             if (empty($config->{'path_' . $key})) {
-                $name = get_string('config_api_paths', 'local_pfc') . ' - ' . get_string($key, 'local_pfc');
-                $errors[] = get_string('is_required', 'local_pfc', $name);
+                $name = get_string('config_api_paths', 'local_evaluationcalendar') . ' - ' . get_string($key, 'local_evaluationcalendar');
+                $errors[] = get_string('is_required', 'local_evaluationcalendar', $name);
             } else {
                 $api_paths[$key] = $config->{'path_' . $key};
             }
         }
-        local_pfc_config::Instance()->api_paths = $api_paths;
+        local_evaluationcalendar_config::Instance()->api_paths = $api_paths;
 
         $has_errors = count($errors) > 0;
 
@@ -790,7 +790,7 @@ class local_pfc
                 $html .= implode('<br />', $errors);
                 $html .= '</p>';
             } else {
-                $html = '<b style=\'color:#4CAF50\'>' . get_string('config_changes_saved', 'local_pfc') . '</b> ';
+                $html = '<b style=\'color:#4CAF50\'>' . get_string('config_changes_saved', 'local_evaluationcalendar') . '</b> ';
             }
             return $html;
         }
@@ -798,15 +798,15 @@ class local_pfc
     }
 
     /**
-     * Calls the local_pfc_config retore_defaults function, and returns a taks done message.
-     * @see local_pfc_config::restore_defaults()
+     * Calls the local_evaluationcalendar_config retore_defaults function, and returns a taks done message.
+     * @see local_evaluationcalendar_config::restore_defaults()
      * @return string|bool if set to render html, returns a message of task done, else returns true
      */
     public function restore_config_to_defaults()
     {
-        local_pfc_config::Instance()->restore_defaults();
+        local_evaluationcalendar_config::Instance()->restore_defaults();
         if ($this->render_html) {
-            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_pfc') . '</b> ';
+            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_evaluationcalendar') . '</b> ';
         }
         return true;
     }
@@ -817,44 +817,44 @@ class local_pfc
  * It is a singleton that can be accessed through the Instance static method.
  * @category Class
  */
-class local_pfc_api_interface
+class local_evaluationcalendar_api_interface
 {
 
     /**
-     * @var \local_pfc\api\calendar_api
+     * @var \local_evaluationcalendar\api\calendar_api
      */
     private $calendar_api;
 
     /**
-     * @var \local_pfc\api\evaluation_api
+     * @var \local_evaluationcalendar\api\evaluation_api
      */
     private $evaluation_api;
 
     /**
-     * @var \local_pfc\api\evaluation_type_api
+     * @var \local_evaluationcalendar\api\evaluation_type_api
      */
     private $evaluation_type_api;
 
     /**
-     * local_pfc_api_interface constructor.
+     * local_evaluationcalendar_api_interface constructor.
      */
     private function __construct()
     {
-        $api_client = new \local_pfc\api_client();
-        $this->calendar_api = new \local_pfc\api\calendar_api($api_client);
-        $this->evaluation_api = new \local_pfc\api\evaluation_api($api_client);
-        $this->evaluation_type_api = new \local_pfc\api\evaluation_type_api($api_client);
+        $api_client = new \local_evaluationcalendar\api_client();
+        $this->calendar_api = new \local_evaluationcalendar\api\calendar_api($api_client);
+        $this->evaluation_api = new \local_evaluationcalendar\api\evaluation_api($api_client);
+        $this->evaluation_type_api = new \local_evaluationcalendar\api\evaluation_type_api($api_client);
     }
 
     /**
      * Call this method to get singleton
-     * @return local_pfc_api_interface
+     * @return local_evaluationcalendar_api_interface
      */
     public static function Instance()
     {
         static $inst = null;
         if ($inst === null) {
-            $inst = new local_pfc_api_interface();
+            $inst = new local_evaluationcalendar_api_interface();
         }
         return $inst;
     }
@@ -867,7 +867,7 @@ class local_pfc_api_interface
      * @param string   $q              (optional) Allows to make queries over several attributes
      * @param string   $fields         (optional) Allows a selection of the attributes
      * @param string   $sort           (optional) Allows sorting the results by attribute
-     * @return \local_pfc\models\calendar[]
+     * @return \local_evaluationcalendar\models\calendar[]
      */
     function get_calendars_published_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null)
     {
@@ -901,7 +901,7 @@ class local_pfc_api_interface
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
      * @param array  $arguments (optional) Allows custom arguments be passed to the query string
-     * @return \local_pfc\models\calendar[]
+     * @return \local_evaluationcalendar\models\calendar[]
      */
     function get_calendars($q = null, $fields = null, $sort = null, $arguments = null)
     {
@@ -914,7 +914,7 @@ class local_pfc_api_interface
      * @param string $q           (optional) Allows to make queries over several attributes
      * @param string $fields      (optional) Allows a selection of the attributes
      * @param string $sort        (optional) Allows sorting the results by attribute
-     * @return \local_pfc\models\evaluation[]
+     * @return \local_evaluationcalendar\models\evaluation[]
      */
     function get_evaluations_by_calendar($calendar_id, $q = null, $fields = null, $sort = null)
     {
@@ -929,7 +929,7 @@ class local_pfc_api_interface
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
      * @param array  $arguments (optional) Allows custom arguments be passed to the query string
-     * @return \local_pfc\models\evaluation[]
+     * @return \local_evaluationcalendar\models\evaluation[]
      */
     function get_evaluations($q = null, $fields = null, $sort = null, $arguments = null)
     {
@@ -945,7 +945,7 @@ class local_pfc_api_interface
      * @param string   $q              (optional) Allows to make queries over several attributes
      * @param string   $fields         (optional) Allows a selection of the attributes
      * @param string   $sort           (optional) Allows sorting the results by attribute
-     * @return \local_pfc\models\evaluation[]
+     * @return \local_evaluationcalendar\models\evaluation[]
      */
     function get_evaluations_updated_by_calendar($datetime_start, $datetime_end, $calendar_id, $q = null, $fields = null, $sort = null)
     {
@@ -963,7 +963,7 @@ class local_pfc_api_interface
      * @param string   $q              (optional) Allows to make queries over several attributes
      * @param string   $fields         (optional) Allows a selection of the attributes
      * @param string   $sort           (optional) Allows sorting the results by attribute
-     * @return \local_pfc\models\evaluation[]
+     * @return \local_evaluationcalendar\models\evaluation[]
      */
     function get_evaluations_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null)
     {
@@ -978,7 +978,7 @@ class local_pfc_api_interface
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
      * @param array  $arguments (optional) Allows custom arguments be passed to the query string
-     * @return \local_pfc\models\evaluation_type[]
+     * @return \local_evaluationcalendar\models\evaluation_type[]
      */
     function get_evaluation_types($fields = null, $sort = null, $arguments = null)
     {
@@ -989,8 +989,8 @@ class local_pfc_api_interface
 
 /**
  * Manage the plugin events table
- * This class provides the required functionality in order to manage the local_pfc_events.
- * The local_pfc_event determines the relation between the calendar_event and the "Calendars Web API" evaluations.
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_events.
+ * The local_evaluationcalendar_event determines the relation between the calendar_event and the "Calendars Web API" evaluations.
  * @category Class
  * @property int    $id              The id within the event table
  * @property int    $eventid         The calendar event this event is associated with (0 if none)
@@ -998,13 +998,13 @@ class local_pfc_api_interface
  * @property int    $sigescode       The Siges code from calendars web api evaluation this event is associated with (0
  *           if none)
  */
-class local_pfc_event
+class local_evaluationcalendar_event
 {
     /** @var array An object containing the event properties can be accessed via the __get/set methods */
     protected $properties = null;
 
     /**
-     * Instantiates a new local_pfc event and optionally populates its properties with the data provided
+     * Instantiates a new local_evaluationcalendar event and optionally populates its properties with the data provided
      * @param stdClass $data Optional. An object containing the properties to for an event
      */
     public function __construct($data = null)
@@ -1027,10 +1027,10 @@ class local_pfc_event
     }
 
     /**
-     * Creates a new event and returns a local_pfc_event object
+     * Creates a new event and returns a local_evaluationcalendar_event object
      * @param stdClass|array $properties An object containing event properties
      * @throws coding_exception
-     * @return local_pfc_event|bool The event object or false if it failed
+     * @return local_evaluationcalendar_event|bool The event object or false if it failed
      */
     public static function create($properties)
     {
@@ -1040,7 +1040,7 @@ class local_pfc_event
         if (!is_object($properties)) {
             throw new coding_exception('When creating an event properties should be either an object or an assoc array');
         }
-        $event = new local_pfc_event($properties);
+        $event = new local_evaluationcalendar_event($properties);
         if ($event->update($properties)) {
             return $event;
         } else {
@@ -1049,7 +1049,7 @@ class local_pfc_event
     }
 
     /**
-     * Update or create an local_pfc_event within the database
+     * Update or create an local_evaluationcalendar_event within the database
      * Pass in a object containing the event properties and this function will
      * insert it into the database
      * @see self::create()
@@ -1067,32 +1067,32 @@ class local_pfc_event
 
         if (empty($this->properties->id) || $this->properties->id < 1) {
             // Insert
-            $this->properties->id = $DB->insert_record('local_pfc_event', $this->properties);
+            $this->properties->id = $DB->insert_record('evaluationcalendar_event', $this->properties);
             return true;
         } else {
             // Update
-            $DB->update_record('local_pfc_event', $this->properties);
-            $event = local_pfc_event::read($this->properties->id);
+            $DB->update_record('evaluationcalendar_event', $this->properties);
+            $event = local_evaluationcalendar_event::read($this->properties->id);
             $this->properties = $event->properties();
             return true;
         }
     }
 
     /**
-     * Returns a local_pfc_event object when provided with an id
+     * Returns a local_evaluationcalendar_event object when provided with an id
      * This function makes use of MUST_EXIST, if the id passed in is invalid
      * it will result in an exception being thrown
      * @param int|object $param event object or id
-     * @return local_pfc_event|false status for loading local_pfc_event
+     * @return local_evaluationcalendar_event|false status for loading local_evaluationcalendar_event
      */
     public static function read($param)
     {
         global $DB;
         if (is_object($param)) {
-            $event = new local_pfc_event($param);
+            $event = new local_evaluationcalendar_event($param);
         } else {
-            $event = $DB->get_record('local_pfc_event', array('id' => (int)$param), '*', MUST_EXIST);
-            $event = new local_pfc_event($event);
+            $event = $DB->get_record('evaluationcalendar_event', array('id' => (int)$param), '*', MUST_EXIST);
+            $event = new local_evaluationcalendar_event($event);
         }
         return $event;
     }
@@ -1108,16 +1108,16 @@ class local_pfc_event
     }
 
     /**
-     * Returns an array of local_pfc_event objects when provided with a existing evaluation id
+     * Returns an array of local_evaluationcalendar_event objects when provided with a existing evaluation id
      * @param string $param evaluation id
-     * @return local_pfc_event[]|false status for loading local_pfc_event
+     * @return local_evaluationcalendar_event[]|false status for loading local_evaluationcalendar_event
      */
     public static function read_from_evaluation_id($param)
     {
         global $DB;
-        $events = $DB->get_records('local_pfc_event', array('evaluationid' => $param));
+        $events = $DB->get_records('evaluationcalendar_event', array('evaluationid' => $param));
         foreach ($events as $key => $event) {
-            $events[$key] = new local_pfc_event($event);
+            $events[$key] = new local_evaluationcalendar_event($event);
         }
         return $events;
     }
@@ -1168,9 +1168,9 @@ class local_pfc_event
     }
 
     /**
-     * Deletes an local_pfc_event, and if selected, deletes the associated calendar_event
+     * Deletes an local_evaluationcalendar_event, and if selected, deletes the associated calendar_event
      * This function deletes an event and the associated calendar_event if $deletecalendarevent=true.
-     * This function makes use of MUST_EXIST to ensure the local_pfc_event is valid, if not
+     * This function makes use of MUST_EXIST to ensure the local_evaluationcalendar_event is valid, if not
      * it will result in an exception being thrown
      * @see self::delete()
      * @param bool $deletecalendarevent delete calendar_event
@@ -1187,9 +1187,9 @@ class local_pfc_event
         }
 
         // Ensures there is an event to be deleted
-        $DB->get_record('local_pfc_event', array('id' => $this->id), '*', MUST_EXIST);
+        $DB->get_record('evaluationcalendar_event', array('id' => $this->id), '*', MUST_EXIST);
         // Delete the event
-        $DB->delete_records('local_pfc_event', array('id' => $this->id));
+        $DB->delete_records('evaluationcalendar_event', array('id' => $this->id));
 
         if ($deletecalendarevent) {
             $calendar_event = calendar_event::load($this->eventid);

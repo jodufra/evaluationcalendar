@@ -20,7 +20,7 @@
 
 
 
-function xmldb_local_pfc_upgrade($oldversion) {
+function xmldb_local_evaluationcalendar_upgrade($oldversion) {
     global $DB;
     $dbman = $DB->get_manager();
 

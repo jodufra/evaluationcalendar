@@ -18,18 +18,18 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc;
+namespace local_evaluationcalendar;
 
 defined('MOODLE_INTERNAL') || die();
 /*
-require_once($CFG->dirroot.'/local/pfc/classes/api_configuration.php');
-require_once($CFG->dirroot.'/local/pfc/classes/api_exception.php');
-require_once($CFG->dirroot.'/local/pfc/classes/api_object_serializer.php');
-require_once($CFG->dirroot.'/local/pfc/classes/models/evaluation.php');*/
+require_once($CFG->dirroot.'/local/evaluationcalendar/classes/api_configuration.php');
+require_once($CFG->dirroot.'/local/evaluationcalendar/classes/api_exception.php');
+require_once($CFG->dirroot.'/local/evaluationcalendar/classes/api_object_serializer.php');
+require_once($CFG->dirroot.'/local/evaluationcalendar/classes/models/evaluation.php');*/
 
 /**
  * @category Class
- * @package  local_pfc
+ * @package  local_evaluationcalendar
  */
 class api_client
 {

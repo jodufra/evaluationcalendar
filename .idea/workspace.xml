@@ -6,8 +6,8 @@
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/api_configuration.php" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/api_exception.php" />
       <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/api_object_serializer.php" />
-      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/copyright/pfc.xml" afterPath="" />
-      <change type="MOVED" beforePath="$PROJECT_DIR$/lang/en/local_wstemplate.php" afterPath="$PROJECT_DIR$/lang/en/local_pfc.php" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/.idea/copyright/evaluationcalendar.xml" afterPath="" />
+      <change type="MOVED" beforePath="$PROJECT_DIR$/lang/en/local_wstemplate.php" afterPath="$PROJECT_DIR$/lang/en/local_evaluationcalendar.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" afterPath="$PROJECT_DIR$/.idea/copyright/profiles_settings.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/db/access.php" afterPath="$PROJECT_DIR$/db/access.php" />
@@ -15,7 +15,7 @@
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/settings.php" afterPath="$PROJECT_DIR$/settings.php" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/version.php" afterPath="$PROJECT_DIR$/version.php" />
     </list>
-    <ignored path="pfc.iws" />
+    <ignored path="evaluationcalendar.iws" />
     <ignored path=".idea/workspace.xml" />
     <ignored path=".idea/dataSources.local.xml" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
@@ -31,7 +31,7 @@
   </component>
   <component name="ExecutionTargetManager" SELECTED_TARGET="default_target" />
   <component name="FavoritesManager">
-    <favorites_list name="pfc" />
+    <favorites_list name="evaluationcalendar" />
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300" />
@@ -132,17 +132,17 @@
         <subPane>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="pfc" />
+              <option name="myItemId" value="evaluationcalendar" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
           </PATH>
           <PATH>
             <PATH_ELEMENT>
-              <option name="myItemId" value="pfc" />
+              <option name="myItemId" value="evaluationcalendar" />
               <option name="myItemType" value="com.intellij.ide.projectView.impl.nodes.ProjectViewProjectNode" />
             </PATH_ELEMENT>
             <PATH_ELEMENT>
-              <option name="myItemId" value="pfc" />
+              <option name="myItemId" value="evaluationcalendar" />
               <option name="myItemType" value="com.jetbrains.php.projectView.PhpTreeStructureProvider$1" />
             </PATH_ELEMENT>
           </PATH>
@@ -159,11 +159,11 @@
   </component>
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
-      <recent name="C:\Users\Joel\Desktop\PFC\MoodleWindowsInstaller-latest-30\server\moodle\local\pfc\api" />
+      <recent name="C:\Users\Joel\Desktop\evaluationcalendar\MoodleWindowsInstaller-latest-30\server\moodle\local\evaluationcalendar\api" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
-      <recent name="C:\Users\Joel\Desktop\PFC\MoodleWindowsInstaller-latest-30\server\moodle\local\pfc" />
-      <recent name="C:\Users\Joel\Desktop\PFC\MoodleWindowsInstaller-latest-30\server\moodle\local\pfc\api" />
+      <recent name="C:\Users\Joel\Desktop\evaluationcalendar\MoodleWindowsInstaller-latest-30\server\moodle\local\evaluationcalendar" />
+      <recent name="C:\Users\Joel\Desktop\evaluationcalendar\MoodleWindowsInstaller-latest-30\server\moodle\local\evaluationcalendar\api" />
     </key>
   </component>
   <component name="RunManager">
@@ -283,7 +283,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/lang/en/local_pfc.php">
+    <entry file="file://$PROJECT_DIR$/lang/en/local_evaluationcalendar.php">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="238">
           <caret line="14" column="0" selection-start-line="14" selection-start-column="0" selection-end-line="14" selection-end-column="0" />
@@ -398,7 +398,7 @@
     <states>
       <state key="Copyright.UI">
         <settings>
-          <last-edited>pfc</last-edited>
+          <last-edited>evaluationcalendar</last-edited>
           <splitter-proportions>
             <option name="proportions">
               <list>

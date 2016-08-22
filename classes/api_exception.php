@@ -18,14 +18,14 @@
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc;
+namespace local_evaluationcalendar;
 
 defined('MOODLE_INTERNAL') || die();
 
 /**
  * Class api_exception
  * @category Class
- * @package  local_pfc
+ * @package  local_evaluationcalendar
  */
 class api_exception extends \moodle_exception
 {
@@ -73,7 +73,7 @@ class api_exception extends \moodle_exception
                 $a->body = $responseBody;
             }
         }
-        parent::__construct($code, 'local_pfc', new \moodle_url('/local/pfc/'), $a, $message);
+        parent::__construct($code, 'local_evaluationcalendar', new \moodle_url('/local/evaluationcalendar/'), $a, $message);
         $this->originalMessage = $message;
         $this->responseHeaders = $responseHeaders;
         $this->responseBody = $responseBody;

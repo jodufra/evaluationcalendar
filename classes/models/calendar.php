@@ -13,22 +13,22 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc\models
+ * @package local_evaluationcalendar\models
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc\models;
-use \local_pfc\api_exception;
+namespace local_evaluationcalendar\models;
+use \local_evaluationcalendar\api_exception;
 
 
 /**
  * Class calendar
  *
  * @category Class
- * @package local_pfc\models
+ * @package local_evaluationcalendar\models
  */
 class calendar extends base_model
 {

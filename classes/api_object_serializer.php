@@ -19,14 +19,14 @@
  */
 
 
-namespace local_pfc;
+namespace local_evaluationcalendar;
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
  * Class api_object_serializer
  * @category Class
- * @package  local_pfc
+ * @package  local_evaluationcalendar
  */
 class api_object_serializer
 {
@@ -224,7 +224,7 @@ class api_object_serializer
             $result = $values;
         } else {
             if (!empty($discriminator) && isset($data->{$discriminator}) && is_string($data->{$discriminator})) {
-                $subclass = '\local_pfc\models\\' . $data->{$discriminator};
+                $subclass = '\local_evaluationcalendar\models\\' . $data->{$discriminator};
                 if (is_subclass_of($subclass, $class)) {
                     $class = $subclass;
                 }
