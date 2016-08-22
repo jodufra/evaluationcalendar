@@ -23,9 +23,80 @@
 defined('MOODLE_INTERNAL') || die();
 require_once $CFG->libdir . '/formslib.php';
 
+/**
+ * Class local_evaluationcalendar_section_form
+ * @category Class
+ */
+class local_evaluationcalendar_section_form
+{
+
+    /**
+     * @var array
+     */
+    private $sections = array('information', 'synchronize', 'settings', 'logs');
+
+    /**
+     * @var string
+     */
+    private $section;
+    /**
+     * @var \moodle_url
+     */
+    private $moodle_url;
+
+    /**
+     * local_evaluationcalendar_section_selector constructor.
+     * @param $moodle_url \moodle_url
+     * @param $section    string
+     */
+    public function __construct($moodle_url, $section)
+    {
+        $this->moodle_url = $moodle_url;
+        $this->set_section($section);
+    }
+
+    public function get_section()
+    {
+        return $this->section;
+    }
+
+    public function set_section($section)
+    {
+        if (empty($section) || !in_array($section, $this->sections)) {
+            $section = $this->sections[0];
+        }
+        $this->section = $section;
+    }
+
+    /**
+     * Print html section selector form.
+     */
+    public function display()
+    {
+        $items = [];
+        foreach ($this->sections as $s) {
+            $section_name = get_string($s, 'local_evaluationcalendar');
+            if (strcmp($s, $this->section) === 0) {
+                $items[] = '<li><span>' . $section_name . '</span></li>';
+            } else {
+                $param = array('section' => $s);
+                $items[] = '<li><a href="' . $this->moodle_url->out(true, $param) . '">' . $section_name . '</a></li>';
+            }
+        }
+        $divider = '<li><span class="divider"><span class="accesshide"><span class="arrow_text">/</span>&nbsp;</span>';
+        $divider .= '<span class="arrow sep">|</span></span></li>';
+        $html = '<div class="clearfix text-center"><nav class="breadcrumb-nav block_navigation block" style="float: none; font-size: 125%;">';
+        $html .= '<ul class="breadcrumb">';
+        $html .= implode($divider, $items);
+        $html .= '</ul></nav></div>';
+        echo $html;
+    }
+
+}
+
 
 /**
- * Class local_evaluationcalendar_synchronize_calendars_form
+ * Class local_evaluationcalendar_synchronize_form
  * @category Class
  */
 class local_evaluationcalendar_synchronize_form extends moodleform
@@ -56,7 +127,7 @@ class local_evaluationcalendar_synchronize_form extends moodleform
 }
 
 /**
- * Class local_evaluationcalendar_check_api_form
+ * Class local_evaluationcalendar_config_form
  * @category Class
  */
 class local_evaluationcalendar_config_form extends moodleform
@@ -990,7 +1061,8 @@ class local_evaluationcalendar_api_interface
 /**
  * Manage the plugin events table
  * This class provides the required functionality in order to manage the local_evaluationcalendar_events.
- * The local_evaluationcalendar_event determines the relation between the calendar_event and the "Calendars Web API" evaluations.
+ * The local_evaluationcalendar_event determines the relation between the calendar_event and the "Calendars Web API"
+ * evaluations.
  * @category Class
  * @property int    $id              The id within the event table
  * @property int    $eventid         The calendar event this event is associated with (0 if none)

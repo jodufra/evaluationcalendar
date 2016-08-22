@@ -29,37 +29,50 @@ admin_externalpage_setup('local_evaluationcalendar');
 
 
 $moodle_url = new moodle_url('/local/evaluationcalendar/');
+$section = optional_param('section', '', PARAM_PATH);
 
-$synchronize_form_result = '';
-$synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
-if ($data = $synchronize_form->get_data()) {
-    $evaluationcalendar = new local_evaluationcalendar(true);
-    if (strcmp($data->synchronize, 'all') === 0) {
-        $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars(true);
-    } else {
-        $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars();
-    }
-}
-
-$config_form_result = '';
-$config_form = new local_evaluationcalendar_config_form($moodle_url);
-$config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
-if ($data = $config_form->get_data()) {
-    $evaluationcalendar = new local_evaluationcalendar(true);
-    if (!empty($data->restore_defaults)) {
-        $config_form_result = $evaluationcalendar->restore_config_to_defaults();
-    } else {
-        $config_form_result = $evaluationcalendar->update_config($data);
-    }
-    // Since changes might been made we need to reload the form in order to display the correct information
-    $config_form->definition_after_data($config_form_result);
-}
+$section_form = new local_evaluationcalendar_section_form($moodle_url, $section);
+$section = $section_form->get_section();
+$moodle_url->param('section', $section);
 
 echo $OUTPUT->header();
-$synchronize_form->display();
-if ($synchronize_form_result) {
-    echo '<code style="display: block">' . $synchronize_form_result . '</code>';
+$section_form->display();
+
+if (strcmp($section, 'information') == 0) {
+    echo 'todo';
+} elseif (strcmp($section, 'synchronize') == 0) {
+    $synchronize_form_result = '';
+    $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
+    if ($data = $synchronize_form->get_data()) {
+        $evaluationcalendar = new local_evaluationcalendar(true);
+        if (strcmp($data->synchronize, 'all') === 0) {
+            $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars(true);
+        } else {
+            $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars();
+        }
+    }
+    $synchronize_form->display();
+    if ($synchronize_form_result) {
+        echo '<code style="display: block">' . $synchronize_form_result . '</code>';
+    }
+} elseif (strcmp($section, 'settings') == 0) {
+    $config_form_result = '';
+    $config_form = new local_evaluationcalendar_config_form($moodle_url);
+    $config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
+    if ($data = $config_form->get_data()) {
+        $evaluationcalendar = new local_evaluationcalendar(true);
+        if (!empty($data->restore_defaults)) {
+            $config_form_result = $evaluationcalendar->restore_config_to_defaults();
+        } else {
+            $config_form_result = $evaluationcalendar->update_config($data);
+        }
+        // Since changes might been made we need to reload the form in order to display the correct information
+        $config_form->definition_after_data($config_form_result);
+    }
+    $config_form->display();
+} elseif (strcmp($section, 'logs') == 0) {
+    echo 'todo';
 }
-$config_form->display();
+
 echo $OUTPUT->footer();
 
