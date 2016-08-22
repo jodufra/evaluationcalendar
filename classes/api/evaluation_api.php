@@ -12,25 +12,24 @@
 
 /**
  * [File Documentation]
- *
- * @package local_pfc\api
+ * @package   local_evaluationcalendar\api
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc\api;
-use local_pfc\api_client;
-use local_pfc\api_exception;
-use local_pfc\models\evaluation;
+namespace local_evaluationcalendar\api;
+
+use local_evaluationcalendar\api_client;
+use local_evaluationcalendar\api_exception;
+use local_evaluationcalendar\models\evaluation;
 
 
 /**
  * Class evaluation_api
- *
  * @category Class
- * @package local_pfc\api
+ * @package  local_evaluationcalendar\api
  */
 class evaluation_api extends base_api
 {
@@ -39,7 +38,7 @@ class evaluation_api extends base_api
      * Class path of the returning model of the api
      * @var string
      */
-    private static $_model = '\local_pfc\models\evaluation';
+    private static $_model = '\local_evaluationcalendar\models\evaluation';
 
     /**
      * Constructor
@@ -52,35 +51,33 @@ class evaluation_api extends base_api
 
 
     /**
-     *
      * Gets evaluations list
-     *
-     * @param string $q Permite efetuar uma pesquisa global sobre varios campos (optional)
-     * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
-     * @param string $sort Permite ordenar os resultados por atributo (optional)
+     * @param string $q         (optional) Allows to make queries over several attributes
+     * @param string $fields    (optional) Allows a selection of the attributes
+     * @param string $sort      (optional) Allows sorting the results by attribute
+     * @param array  $arguments (optional) Allows custom arguments be passed to the query string
      * @return evaluation[]
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations($q = null, $fields = null, $sort = null)
+    public function get_evaluations($q = null, $fields = null, $sort = null, $arguments = null)
     {
-        list($response, $statusCode, $httpHeader) = $this->get_evaluations_with_http_info ($q, $fields, $sort);
+        list($response, $statusCode, $httpHeader) = $this->get_evaluations_with_http_info($q, $fields, $sort, $arguments);
         return $response;
     }
 
     /**
-     *
      * Gets evaluations list
-     *
-     * @param string $q Permite efetuar uma pesquisa global sobre varios campos (optional)
-     * @param string $fields Permite selecionar um sub conjunto de atributos (optional)
-     * @param string $sort Permite ordenar os resultados por atributo (optional)
+     * @param string $q         (optional) Allows to make queries over several attributes
+     * @param string $fields    (optional) Allows a selection of the attributes
+     * @param string $sort      (optional) Allows sorting the results by attribute
+     * @param array  $arguments (optional) Allows custom arguments be passed to the query string
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null)
+    public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null, $arguments = null)
     {
         // parse inputs
-        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluations'];
+        $resourcePath = \local_evaluationcalendar_config::Instance()->api_paths['evaluations'];
         $queryParams = array();
 
         // query params
@@ -93,37 +90,38 @@ class evaluation_api extends base_api
         if ($sort !== null) {
             $queryParams['sort'] = $this->apiClient->getSerializer()->toQueryValue($sort);
         }
+        if ($arguments !== null) {
+            foreach ($arguments as $arg => $value) {
+                $queryParams[$arg] = $this->apiClient->getSerializer()->toQueryValue($value);
+            }
+        }
 
         // default format to json
         $resourcePath = str_replace("{format}", "json", $resourcePath);
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model . '[]');
         } catch (api_exception $e) {
             throw $e;
         }
     }
-    
-    
+
+
     /**
-     *
      * Devolve uma lista de avaliações consoante a lista de códigos de Unidades Curriculares.
-     *
      * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
      * @return evaluation[]
      * @throws api_exception on non-2xx response
      */
     public function get_evaluations_from_ucs($uc_list)
     {
-        list($response, $statusCode, $httpHeader) = $this->get_evaluations_form_ucs_with_http_info ($uc_list);
+        list($response, $statusCode, $httpHeader) = $this->get_evaluations_form_ucs_with_http_info($uc_list);
         return $response;
     }
 
     /**
-     *
      * Devolve uma lista de avaliações consoante a lista de códigos de Unidades Curriculares.
-     *
      * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
@@ -137,7 +135,7 @@ class evaluation_api extends base_api
         }
 
         // parse inputs
-        $resourcePath = \local_pfc_config::Instance()->api_paths['evaluations_ucs'];
+        $resourcePath = \local_evaluationcalendar_config::Instance()->api_paths['evaluations_ucs'];
         $queryParams = array();
 
         // query params
@@ -150,7 +148,7 @@ class evaluation_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model.'[]');
+            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model . '[]');
         } catch (api_exception $e) {
             throw $e;
         }

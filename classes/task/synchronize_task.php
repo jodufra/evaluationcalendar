@@ -12,19 +12,19 @@
 
 /**
  * [File Documentation]
- * @package   local_pfc\task
+ * @package   local_evaluationcalendar\task
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc\task;
+namespace local_evaluationcalendar\task;
 
 /**
  * Class synchronize_evaluation_calendars
  * @category Class
- * @package  local_pfc\task
+ * @package  local_evaluationcalendar\task
  */
 class synchronize_task extends \core\task\scheduled_task
 {
@@ -34,7 +34,7 @@ class synchronize_task extends \core\task\scheduled_task
      */
     public function get_name() {
         // Shown in admin screens
-        return get_string('synchronize_task', 'local_pfc');
+        return get_string('synchronize_task', 'local_evaluationcalendar');
     }
 
     /**
@@ -42,9 +42,9 @@ class synchronize_task extends \core\task\scheduled_task
      */
     public function execute() {
         global $CFG;
-        require_once($CFG->dirroot . '/local/pfc/lib.php');
+        require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
-        $pfc = new \local_pfc(false);
-        $pfc->synchronize_evaluation_calendars();
+        $evaluationcalendar = new \local_evaluationcalendar(false);
+        $evaluationcalendar->synchronize_evaluation_calendars();
     }
 }

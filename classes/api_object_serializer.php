@@ -12,32 +12,28 @@
 
 /**
  * [File Documentation]
- *
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 
-namespace local_pfc;
+namespace local_evaluationcalendar;
 defined('MOODLE_INTERNAL') || die();
 
 
 /**
  * Class api_object_serializer
- *
  * @category Class
- * @package local_pfc
+ * @package  local_evaluationcalendar
  */
 class api_object_serializer
 {
 
     /**
      * Serialize data
-     *
      * @param mixed $data the data to serialize
-     *
      * @return string serialized form of $data
      */
     public static function sanitizeForSerialization($data)
@@ -69,9 +65,7 @@ class api_object_serializer
 
     /**
      * Sanitize filename by removing path.
-     *
      * @param string $filename filename to be sanitized
-     *
      * @return string the sanitized filename
      */
     public function sanitizeFilename($filename)
@@ -86,9 +80,7 @@ class api_object_serializer
     /**
      * Take value and turn it into a string suitable for inclusion in
      * the path, by url-encoding.
-     *
      * @param string $value a string which will be part of the path
-     *
      * @return string the serialized object
      */
     public function toPathValue($value)
@@ -101,9 +93,7 @@ class api_object_serializer
      * the query, by imploding comma-separated if it's an object.
      * If it's a string, pass through unchanged. It will be url-encoded
      * later.
-     *
      * @param object $object an object to be serialized to a string
-     *
      * @return string the serialized object
      */
     public function toQueryValue($object)
@@ -119,9 +109,7 @@ class api_object_serializer
      * Take value and turn it into a string suitable for inclusion in
      * the header. If it's a string, pass through unchanged
      * If it's a datetime object, format it in ISO8601
-     *
      * @param string $value a string which will be part of the header
-     *
      * @return string the header string
      */
     public function toHeaderValue($value)
@@ -133,9 +121,7 @@ class api_object_serializer
      * Take value and turn it into a string suitable for inclusion in
      * the http body (form parameter). If it's a string, pass through unchanged
      * If it's a datetime object, format it in ISO8601
-     *
      * @param string $value the value of the form parameter
-     *
      * @return string the form string
      */
     public function toFormValue($value)
@@ -151,9 +137,7 @@ class api_object_serializer
      * Take value and turn it into a string suitable for inclusion in
      * the parameter. If it's a string, pass through unchanged
      * If it's a datetime object, format it in ISO8601
-     *
      * @param string $value the value of the parameter
-     *
      * @return string the header string
      */
     public function toString($value)
@@ -167,14 +151,12 @@ class api_object_serializer
 
     /**
      * Serialize an array to a string.
-     *
      * @param array  $collection       collection to serialize to a string
      * @param string $collectionFormat the format use for serialization (csv,
-     * ssv, tsv, pipes, multi)
-     *
+     *                                 ssv, tsv, pipes, multi)
      * @return string
      */
-    public function serializeCollection(array $collection, $collectionFormat, $allowCollectionFormatMulti=false)
+    public function serializeCollection(array $collection, $collectionFormat, $allowCollectionFormatMulti = false)
     {
         if ($allowCollectionFormatMulti && ('multi' === $collectionFormat)) {
             // http_build_query() almost does the job for us. We just
@@ -200,14 +182,12 @@ class api_object_serializer
 
     /**
      * Deserialize a JSON string into an object
-     *
      * @param mixed  $data          object or primitive to be deserialized
      * @param string $class         class name is passed as a string
      * @param string $discriminator discriminator if polymorphism is used
-     *
      * @return object an instance of $class
      */
-    public static function deserialize($data, $class, $discriminator=null)
+    public static function deserialize($data, $class, $discriminator = null)
     {
         if (null === $data) {
             $result = null;
@@ -230,9 +210,11 @@ class api_object_serializer
             } else {
                 $result = null;
             }
-        } elseif (in_array($class, array('void', 'bool', 'string', 'double', 'byte', 'mixed', 'integer', 'float', 'int', 'DateTime', 'number', 'boolean', 'object'))) {
+        } elseif (in_array($class, array('void', 'bool', 'string', 'double', 'byte', 'mixed', 'integer', 'float', 'int', 'number', 'boolean', 'object'))) {
             settype($data, $class);
             $result = $data;
+        } elseif ($class === 'DateTime') {
+            $result = new \DateTime($data);
         } elseif (strcasecmp(substr($class, -2), '[]') == 0) {
             $subClass = substr($class, 0, -2);
             $values = array();
@@ -242,7 +224,7 @@ class api_object_serializer
             $result = $values;
         } else {
             if (!empty($discriminator) && isset($data->{$discriminator}) && is_string($data->{$discriminator})) {
-                $subclass = '\local_pfc\models\\' . $data->{$discriminator};
+                $subclass = '\local_evaluationcalendar\models\\' . $data->{$discriminator};
                 if (is_subclass_of($subclass, $class)) {
                     $class = $subclass;
                 }
@@ -250,11 +232,9 @@ class api_object_serializer
             $instance = new $class();
             foreach ($instance::types() as $property => $type) {
                 $propertySetter = $instance::setters()[$property];
-
                 if (!isset($propertySetter) || !isset($data->{$instance::attributeMap()[$property]})) {
                     continue;
                 }
-
                 $propertyValue = $data->{$instance::attributeMap()[$property]};
                 if (isset($propertyValue)) {
                     $instance->$propertySetter(self::deserialize($propertyValue, $type, $discriminator));

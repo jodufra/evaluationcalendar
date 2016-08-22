@@ -19,7 +19,7 @@
  * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-namespace local_pfc;
+namespace local_evaluationcalendar;
 
 defined('MOODLE_INTERNAL') || die();
 
@@ -27,7 +27,7 @@ defined('MOODLE_INTERNAL') || die();
  * APIConfiguration contains all configurations for accessing the external API
  *
  * @category Class
- * @package  local_pfc
+ * @package  local_evaluationcalendar
  */
 class api_configuration
 {
@@ -45,8 +45,8 @@ class api_configuration
     {
         if (self::$_defaultConfiguration == null) {
             self::$_defaultConfiguration = new api_configuration();
-            self::$_defaultConfiguration->defaultHeaders = \local_pfc_config::Instance()->api_authorization_header;
-            self::$_defaultConfiguration->host = \local_pfc_config::Instance()->api_host;
+            self::$_defaultConfiguration->defaultHeaders = \local_evaluationcalendar_config::Instance()->api_authorization_header;
+            self::$_defaultConfiguration->host = \local_evaluationcalendar_config::Instance()->api_host;
         }
 
         return self::$_defaultConfiguration;

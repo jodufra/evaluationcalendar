@@ -21,7 +21,7 @@
 
 $tasks = array(
     array(
-        'classname' => 'local_pfc\task\synchronize_task',
+        'classname' => 'local_evaluationcalendar\task\synchronize_task',
         'blocking' => 0,
         'minute' => '*',
         'hour' => '*',

@@ -13,7 +13,7 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc
+ * @package local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
@@ -22,7 +22,7 @@
 
 $capabilities = array(
     /*
-    'local/pfc:view' => array(
+    'local/evaluationcalendar:view' => array(
         'captype' => 'read',
         'contextlevel' => CONTEXT_MODULE,
         'archetypes' => array(
@@ -34,7 +34,7 @@ $capabilities = array(
         )
     ),
 
-    'local/pfc:synchronizeevaluations' => array(
+    'local/evaluationcalendar:synchronizeevaluations' => array(
         'riskbitmask'  =>  RISK_DATALOSS,
         'captype'      => 'write',
         'contextlevel' => CONTEXT_MODULE,

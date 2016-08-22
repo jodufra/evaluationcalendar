@@ -13,7 +13,7 @@
 /**
  * [File Documentation]
  *
- * @package local_pfc
+ * @package local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author Duarte Mateus <2120189@my.ipleiria.pt>
  * @author Joel Francisco <2121000@my.ipleiria.pt>
@@ -24,6 +24,6 @@
 defined('MOODLE_INTERNAL') || die;
 
 if ($hassiteconfig) { // Needs this condition or there is error on login page.
-    $ADMIN->add('development', new admin_externalpage('local_pfc',
-        get_string('pluginname', 'local_pfc'), new moodle_url('/local/pfc/index.php')));
+    $ADMIN->add('development', new admin_externalpage('local_evaluationcalendar',
+        get_string('pluginname', 'local_evaluationcalendar'), new moodle_url('/local/evaluationcalendar/index.php')));
 }

@@ -12,7 +12,7 @@
 
 /**
  * [File Documentation]
- * @package   local_pfc
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
@@ -22,34 +22,34 @@
 global $CFG, $OUTPUT;
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
-require_once($CFG->dirroot . '/local/pfc/lib.php');
+require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
 // Initialize admin page
-admin_externalpage_setup('local_pfc');
+admin_externalpage_setup('local_evaluationcalendar');
 
 
-$moodle_url = new moodle_url('/local/pfc/');
+$moodle_url = new moodle_url('/local/evaluationcalendar/');
 
 $synchronize_form_result = '';
-$synchronize_form = new local_pfc_synchronize_form($moodle_url);
+$synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
 if ($data = $synchronize_form->get_data()) {
-    $pfc = new local_pfc(true);
-    if (strcmp($data->synchronize, 'all')) {
-        $synchronize_form_result = $pfc->synchronize_evaluation_calendars(true);
+    $evaluationcalendar = new local_evaluationcalendar(true);
+    if (strcmp($data->synchronize, 'all') === 0) {
+        $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars(true);
     } else {
-        $synchronize_form_result = $pfc->synchronize_evaluation_calendars();
+        $synchronize_form_result = $evaluationcalendar->synchronize_evaluation_calendars();
     }
 }
 
 $config_form_result = '';
-$config_form = new local_pfc_config_form($moodle_url);
-$config_form->set_data(local_pfc_config::Instance()->generate_form_data());
+$config_form = new local_evaluationcalendar_config_form($moodle_url);
+$config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
 if ($data = $config_form->get_data()) {
-    $pfc = new local_pfc(true);
+    $evaluationcalendar = new local_evaluationcalendar(true);
     if (!empty($data->restore_defaults)) {
-        $config_form_result = $pfc->restore_config_to_defaults();
+        $config_form_result = $evaluationcalendar->restore_config_to_defaults();
     } else {
-        $config_form_result = $pfc->update_config($data);
+        $config_form_result = $evaluationcalendar->update_config($data);
     }
     // Since changes might been made we need to reload the form in order to display the correct information
     $config_form->definition_after_data($config_form_result);
