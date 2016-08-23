@@ -33,7 +33,7 @@ class local_evaluationcalendar_section_form
     /**
      * @var array
      */
-    private $sections = array('information', 'synchronize', 'settings', 'logs');
+    private $sections = array('information', 'synchronize', 'settings', 'reports');
 
     /**
      * @var string
@@ -83,10 +83,14 @@ class local_evaluationcalendar_section_form
                 $items[] = '<li><a href="' . $this->moodle_url->out(true, $param) . '">' . $section_name . '</a></li>';
             }
         }
-        $divider = '<li><span class="divider"><span class="accesshide"><span class="arrow_text">/</span>&nbsp;</span>';
-        $divider .= '<span class="arrow sep">|</span></span></li>';
-        $html = '<div class="clearfix text-center"><nav class="breadcrumb-nav block_navigation block" style="float: none; font-size: 125%;">';
-        $html .= '<ul class="breadcrumb">';
+        $html = '<div class="clearfix text-center">' .
+            '<nav class="breadcrumb-nav block_navigation block" style="float: none; font-size: 125%;">' .
+            '<ul class="breadcrumb">';
+        $divider = '<li>' .
+            '<span class="divider">' .
+            '<span class="accesshide"><span class="arrow_text">/</span>&nbsp;</span>' .
+            '<span class="arrow sep">|</span>' .
+            '</span></li>';
         $html .= implode($divider, $items);
         $html .= '</ul></nav></div>';
         echo $html;
@@ -191,7 +195,7 @@ class local_evaluationcalendar_config_form extends moodleform
         }
 
         // development mode
-        $mform->addElement('advcheckbox', 'development_mode',get_string('config_development_mode', 'local_evaluationcalendar'));
+        $mform->addElement('advcheckbox', 'development_mode', get_string('config_development_mode', 'local_evaluationcalendar'));
         $mform->setType('development_mode', PARAM_BOOL);
 
         // buttons
@@ -215,7 +219,6 @@ class local_evaluationcalendar_config_form extends moodleform
  */
 final class local_evaluationcalendar_config
 {
-
     /** @var string Default API authorization header */
     private static $DEFAULT_API_AUTHORIZATION_HEADER = array('Authorization' => 'Bearer 00ef34c7f062fdb0fa77dcec86db445c');
     /** @var string Default API host */
@@ -254,8 +257,8 @@ final class local_evaluationcalendar_config
         $lines = $DB->get_records('evaluationcalendar_config');
         foreach ($lines as $line) {
             $value = json_decode($line->value);
-            if ($line->name === 'last_synchronization') {
-                $value = new DateTime($value->date);
+            if (is_object($this->properties->{$line->name}) && get_class($this->properties->{$line->name}) === 'DateTime') {
+                $value = new DateTime($value);
             } else if (is_object($value)) {
                 $value = (array)$value;
             }
@@ -313,8 +316,12 @@ final class local_evaluationcalendar_config
         if ($key === 'development_mode' && !$this->properties->{$key}) {
             local_evaluationcalendar_event::delete_development_events();
         }
-
-        $value = json_encode($this->properties->{$key});
+        if (is_object($this->properties->{$key}) && get_class($this->properties->{$key}) === 'DateTime') {
+            $value = $this->properties->{$key}->format('Y-m-d H:i:s');
+        } else {
+            $value = $this->properties->{$key};
+        }
+        $value = json_encode($value);
         $line = $DB->get_record('evaluationcalendar_config', array('name' => $key));
         if ($line) {
             // Update
@@ -510,6 +517,18 @@ class local_evaluationcalendar
         $date_last_synchronization = $update_all ? $date_epoch : local_evaluationcalendar_config::Instance()->last_synchronization;
         $date_now = new DateTime();
 
+        // instantiate the report object
+        $report = new stdClass();
+        $report->task = 'synchronize';
+        $report->inserts = 0;
+        $report->updates = 0;
+        $report->cleaned = 0;
+        $report->deleted = 0;
+        $report->errors = 0;
+        $report->finished = false;
+        $report->synchronization_date = $date_now;
+        $report->logs = [];
+
         // we create an object with all the calendars api data
         $api_map = new stdClass();
 
@@ -587,57 +606,46 @@ class local_evaluationcalendar
             $api_assoc_map->evaluation_types[$api_map->evaluation_types[$i]->getId()] = $api_map->evaluation_types[$i];
         }
 
-        // instantiate the report object
-        $result = new stdClass();
-        $result->calendars_count = sizeof($api_map->calendars);
-        $result->evaluations_count = sizeof($api_map->evaluations);
-        $result->evaluation_types_count = sizeof($api_map->evaluation_types);
-        $result->logs = [];
-        $result->inserts = 0;
-        $result->updates = 0;
-        $result->cleaned = 0;
-        $result->deleted = 0;
-        $result->errors = 0;
-
+        // the data is retrieved and ready to proceed to the synchronizations stage
         foreach ($api_map->evaluations as $evaluation) {
             // this array will contain the tasks that need to be executed for each evaluation
             $tasks = new stdClass();
-            $tasks->dirty_event_keys = array(); // "array keys" of $evaluationcalendar_events that need cleaning
+            $tasks->dirty_event_keys = array(); // "array keys" of $ec_events that need cleaning
             $tasks->dirty_calendar_keys = array(); // "array keys" of $calendar_events that need cleaning
             $tasks->insert_keys = array(); // "array keys" of $courses that require an evaluation event insert
             $tasks->update_keys = array(); // "array keys" of $calendar_events that will be updated
 
             // retrieve all evaluationcalendar events with the given evaluation id
-            $evaluationcalendar_events = local_evaluationcalendar_event::read_from_evaluation_id($evaluation->getId());
+            $ec_events = local_evaluationcalendar_event::read_from_evaluation_id($evaluation->getId());
 
             // retrieve the courses which idnumber starts with the siges code and ends with underscore and something
             $courses = $DB->get_records_select('course', "idnumber LIKE '" . $evaluation->getCodigoSiges() . "\_%'");
             if (empty($courses)) {
-                if (!empty($evaluationcalendar_events)) {
+                if (!empty($ec_events)) {
                     // the evaluation siges code was updated and since there are no courses to match the siges code
                     // they need to be deleted
-                    foreach ($evaluationcalendar_events as $evaluationcalendar_event) {
-                        $evaluationcalendar_event->delete(true);
-                        $result->deleted++;
+                    foreach ($ec_events as $ec_event) {
+                        $ec_event->delete(true);
+                        $report->deleted++;
                     }
                 }
                 $log = new stdClass();
                 $log->type = 'Error';
                 $log->message = 'No courses found with given siges code.';
                 $log->params = ['sigescode' => $evaluation->getCodigoSiges(), 'evaluationid' => $evaluation->getId()];
-                array_push($result->logs, $log);
-                $result->errors++;
+                array_push($report->logs, $log);
+                $report->errors++;
                 continue;
             }
 
             // retrieve all calendar events related with the evaluationcalendar events
             $calendar_events = array();
-            foreach ($evaluationcalendar_events as $evaluationcalendar_event_key => $evaluationcalendar_event) {
+            foreach ($ec_events as $ec_event_key => $ec_event) {
                 try {
-                    $calendar_event = calendar_event::load($evaluationcalendar_event->eventid);
+                    $calendar_event = calendar_event::load($ec_event->eventid);
                     array_push($calendar_events, $calendar_event);
                 } catch (Exception $e) {
-                    array_push($tasks->dirty_event_keys, $evaluationcalendar_event_key);
+                    array_push($tasks->dirty_event_keys, $ec_event_key);
                 }
             }
 
@@ -659,9 +667,9 @@ class local_evaluationcalendar
             foreach ($tasks->dirty_calendar_keys as $key => $calendar_event_key) {
                 // since we are going to delete the calendar event we need to delete the related evaluationcalendar event, if any
                 // so we get the array key to use in the clean evaluationcalendar_events stage
-                foreach ($evaluationcalendar_events as $evaluationcalendar_event_key => $evaluationcalendar_event) {
-                    if ($calendar_events[$calendar_event_key]->id == $evaluationcalendar_event->eventid) {
-                        array_push($tasks->dirty_event_keys, $evaluationcalendar_event_key);
+                foreach ($ec_events as $ec_event_key => $ec_event) {
+                    if ($calendar_events[$calendar_event_key]->id == $ec_event->eventid) {
+                        array_push($tasks->dirty_event_keys, $ec_event_key);
                         break;
                     }
                 }
@@ -671,10 +679,10 @@ class local_evaluationcalendar
             }
 
             // clean the evaluationcalendar_events
-            foreach ($tasks->dirty_event_keys as $key => $evaluationcalendar_event_key) {
-                $evaluationcalendar_events[$evaluationcalendar_event_key]->delete();
-                unset($evaluationcalendar_events[$evaluationcalendar_event_key]);
-                $result->cleaned++;
+            foreach ($tasks->dirty_event_keys as $key => $ec_event_key) {
+                $ec_events[$ec_event_key]->delete();
+                unset($ec_events[$ec_event_key]);
+                $report->cleaned++;
             }
 
             // check what needs to be inserted or updated
@@ -697,7 +705,7 @@ class local_evaluationcalendar
 
             // insert
             foreach ($tasks->insert_keys as $key => $course_key) {
-                $evaluationcalendar_event = new local_evaluationcalendar_event();
+                $ec_event = new local_evaluationcalendar_event();
                 $calendar_event = new calendar_event();
 
                 // set default values
@@ -721,25 +729,25 @@ class local_evaluationcalendar
                     $log->type = 'Error';
                     $log->message = 'Error inserting calendar event.';
                     $log->params = ['calendar_event' => $calendar_event];
-                    array_push($result->logs, $log);
-                    $result->errors++;
+                    array_push($report->logs, $log);
+                    $report->errors++;
                     continue;
                 }
                 // then the evaluationcalendar, since we have all we need
-                $evaluationcalendar_event->eventid = $calendar_event->id;
-                $evaluationcalendar_event->evaluationid = $evaluation->getId();
-                $evaluationcalendar_event->sigescode = $evaluation->getCodigoSiges();
-                $evaluationcalendar_event = local_evaluationcalendar_event::create($evaluationcalendar_event->properties());
-                if (!$evaluationcalendar_event) {
+                $ec_event->eventid = $calendar_event->id;
+                $ec_event->evaluationid = $evaluation->getId();
+                $ec_event->sigescode = $evaluation->getCodigoSiges();
+                $ec_event = local_evaluationcalendar_event::create($ec_event->properties());
+                if (!$ec_event) {
                     $log = new stdClass();
                     $log->type = 'Error';
                     $log->message = 'Error inserting evaluationcalendar event.';
-                    $log->params = ['evaluationcalendar_event' => $evaluationcalendar_event];
-                    array_push($result->logs, $log);
-                    $result->errors++;
+                    $log->params = ['evaluationcalendar_event' => $ec_event];
+                    array_push($report->logs, $log);
+                    $report->errors++;
                     continue;
                 }
-                $result->inserts++;
+                $report->inserts++;
             }
 
             // update
@@ -757,33 +765,35 @@ class local_evaluationcalendar
                     $log->type = 'Error';
                     $log->message = 'Error updating calendar event.';
                     $log->params = ['calendar_event' => $calendar_event];
-                    array_push($result->logs, $log);
-                    $result->errors++;
+                    array_push($report->logs, $log);
+                    $report->errors++;
                     continue;
                 }
-                $result->updates++;
+                $report->updates++;
             }
         }
 
-        // after the synchronization, we need to update the last synchronization parameter in the config
+        // after the synchronization
+        // set the finished flag for the report
+        $report->finished = true;
+        // update the last synchronization parameter in the config
         local_evaluationcalendar_config::Instance()->last_synchronization = $date_now;
 
         // now it's time to present the results
         if ($this->render_html) {
-
-            if ($result->inserts || $result->cleaned || $result->updates || $result->errors || $result->deleted) {
+            if ($report->inserts || $report->cleaned || $report->updates || $report->errors || $report->deleted) {
                 if ($update_all) {
                     $html = "<p style='color: black'>" . get_string('synchronize_synchronized_all', 'local_evaluationcalendar') . " ( ";
                 } else {
                     $html = "<p style='color: black'>" . get_string('synchronize_synchronized', 'local_evaluationcalendar') . " ( ";
                 }
-                $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_evaluationcalendar') . ": " . $result->inserts . "</b> ";
-                $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_evaluationcalendar') . ": " . $result->cleaned . " )</b>, ";
-                $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_evaluationcalendar') . ": " . $result->updates . "</b>, ";
-                $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_evaluationcalendar') . ": " . $result->errors . "</b> ";
-                $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_evaluationcalendar') . ": " . $result->deleted . " )</b> ";
+                $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts . "</b> ";
+                $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_evaluationcalendar') . ": " . $report->cleaned . " )</b>, ";
+                $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_evaluationcalendar') . ": " . $report->updates . "</b>, ";
+                $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . "</b> ";
+                $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_evaluationcalendar') . ": " . $report->deleted . " )</b> ";
                 $html .= " )</p>";
-                foreach ($result->logs as $log) {
+                foreach ($report->logs as $log) {
                     $html .= "<p>[" . $log->type . "] " . $log->message;
                     foreach ($log->params as $key => $value) {
                         $html .= " [" . $key . " => " . $value . "]";
@@ -795,7 +805,7 @@ class local_evaluationcalendar
             }
             return $html;
         }
-        return $result;
+        return $report;
     }
 
 
@@ -1209,6 +1219,28 @@ class local_evaluationcalendar_event
     }
 
     /**
+     * Deletes all events inserted during development stage.
+     * Also deletes the related calendar events
+     * @see self::delete()
+     * @return bool succession of deleting event
+     */
+    public static function delete_development_events()
+    {
+        global $DB;
+
+        $records = $DB->get_records('evaluationcalendar_event', array('development' => 1), null, 'eventid');
+        if (count($records) == 0) return true;
+
+        $DB->delete_records('evaluationcalendar_event', array('development' => 1));
+
+        foreach ($records as $record) {
+            $calendar_event = calendar_event::load((int)$record->eventid);
+            $calendar_event->delete();
+        }
+        return true;
+    }
+
+    /**
      * Properties get method
      * Attempts to call a get_$key method to return the property and falls over
      * to return the raw property
@@ -1280,28 +1312,6 @@ class local_evaluationcalendar_event
         if ($deletecalendarevent) {
             $calendar_event = calendar_event::load($this->eventid);
             return $calendar_event->delete();
-        }
-        return true;
-    }
-
-    /**
-     * Deletes all events inserted during development stage.
-     * Also deletes the related calendar events
-     * @see self::delete()
-     * @return bool succession of deleting event
-     */
-    public static function delete_development_events()
-    {
-        global $DB;
-
-        $records = $DB->get_records('evaluationcalendar_event', array('development' => 1), null, 'eventid');
-        if (count($records) == 0) return true;
-
-        $DB->delete_records('evaluationcalendar_event', array('development' => 1));
-
-        foreach ($records as $record) {
-            $calendar_event = calendar_event::load((int)$record->eventid);
-            $calendar_event->delete();
         }
         return true;
     }

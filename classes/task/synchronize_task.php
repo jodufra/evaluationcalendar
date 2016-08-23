@@ -45,6 +45,6 @@ class synchronize_task extends \core\task\scheduled_task
         require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
         $evaluationcalendar = new \local_evaluationcalendar(false);
-        $evaluationcalendar->synchronize_evaluation_calendars();
+        $evaluationcalendar->synchronize_evaluation_calendars(false);
     }
 }

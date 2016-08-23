@@ -50,7 +50,7 @@ if (strcmp($section, 'information') == 0) {
     }
     $synchronize_form->display();
     if ($synchronize_form_result) {
-        echo '<code style="display: block">' . $synchronize_form_result . '</code>';
+        echo $synchronize_form_result;
     }
 } elseif (strcmp($section, 'settings') == 0) {
     $config_form_result = '';
@@ -67,7 +67,7 @@ if (strcmp($section, 'information') == 0) {
         $config_form->definition_after_data($config_form_result);
     }
     $config_form->display();
-} elseif (strcmp($section, 'logs') == 0) {
+} elseif (strcmp($section, 'reports') == 0) {
     echo 'todo';
 }
 
