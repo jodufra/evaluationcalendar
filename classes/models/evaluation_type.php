@@ -13,76 +13,137 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar\models
+ * @package   local_evaluationcalendar\models
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_evaluationcalendar\models;
-
 
 /**
  * Class evaluation_type
  *
  * @category Class
- * @package local_evaluationcalendar\models
+ * @package  local_evaluationcalendar\models
  */
-class evaluation_type extends base_model
-{
+class evaluation_type extends base_model {
 
     /**
      * Array of property to type mappings. Used for (de)serialization
+     *
      * @var string[]
      */
     static $types = array(
-        'id' => 'string',
-        'descricao' => 'string',
-        'abreviatura' => 'string'
+            'id' => 'string',
+            'description' => 'string',
+            'abbreviation' => 'string',
+            'created_at' => 'DateTime',
+            'updated_at' => 'DateTime'
     );
 
     /**
      * Array of attributes where the key is the local name, and the value is the original name
+     *
      * @var string[]
      */
     static $attributeMap = array(
-        'id' => 'id',
-        'descricao' => 'descricao',
-        'abreviatura' => 'abreviatura'
+            'id' => 'id',
+            'description' => 'descricao',
+            'abbreviation' => 'abreviatura',
+            'created_at' => 'createdAt',
+            'updated_at' => 'updatedAt'
     );
 
     /**
      * Array of attributes to setter functions (for deserialization of responses)
+     *
      * @var string[]
      */
     static $setters = array(
-        'id' => 'setId',
-        'descricao' => 'setDescricao',
-        'abreviatura' => 'setAbreviatura'
+            'id' => 'set_id',
+            'description' => 'set_description',
+            'abbreviation' => 'set_abbreviation',
+            'created_at' => 'set_created_at',
+            'updated_at' => 'set_updated_at'
     );
 
     /**
      * Array of attributes to getter functions (for serialization of requests)
+     *
      * @var string[]
      */
     static $getters = array(
-        'id' => 'getId',
-        'descricao' => 'getDescricao',
-        'abreviatura' => 'getAbreviatura'
+            'id' => 'get_id',
+            'description' => 'get_description',
+            'abbreviation' => 'get_abbreviation',
+            'created_at' => 'get_created_at',
+            'updated_at' => 'get_updated_at'
     );
 
     /**
+     * $id Evaluation type id.
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * $description Evaluation type description.
+     *
+     * @var string
+     */
+    protected $description;
+
+    /**
+     * $abbreviation Evaluation type abbreviation.
+     *
+     * @var string
+     */
+    protected $abbreviation;
+
+    /**
+     * $updated_at Datetime of creation
+     *
+     * @var \DateTime
+     */
+    protected $created_at;
+
+    /**
+     * $updated_at Datetime of last update
+     *
+     * @var \DateTime
+     */
+    protected $updated_at;
+
+    /**
+     * Constructor
+     *
+     * @param mixed[] $data Associated array of property value initializing the model
+     */
+    public function __construct(array $data = null) {
+        if ($data != null) {
+            $this->id = $data["id"];
+            $this->description = $data["description"];
+            $this->abbreviation = $data["abbreviation"];
+            $this->created_at = $data["created_at"];
+            $this->updated_at = $data["updated_at"];
+        }
+    }
+
+    /**
      * Get array of property to type mappings. Used for (de)serialization
-     * @return $types
+     *
+     * @return string[]
      */
     static function types() {
         return self::$types;
     }
 
-
     /**
      * Get array of attributes where the key is the local name, and the value is the original name
+     *
      * @return string[]
      */
     static function attributeMap() {
@@ -91,14 +152,16 @@ class evaluation_type extends base_model
 
     /**
      * Get array of attributes to setter functions (for deserialization of responses)
+     *
      * @return string[]
      */
-    static function setters() {
+    static function setters(){
         return self::$setters;
     }
 
     /**
      * Get array of attributes to getter functions (for serialization of requests)
+     *
      * @return string[]
      */
     static function getters() {
@@ -106,106 +169,82 @@ class evaluation_type extends base_model
     }
 
     /**
-     * @param $array evaluation_type[]
-     * @param $param string
+     * @param $array            evaluation_type[]
+     * @param $param            string
      * @param $comparison_value string
      * @return evaluation_type|null
      */
-    public static function select_instance_from_array($array, $param, $comparison_value){
+    static function select_instance_from_array($array, $param, $comparison_value) {
         return parent::select_instance_from_array($array, $param, $comparison_value);
     }
 
     /**
-     * $id Identificador do tipo de avalia\u00E7\u00E3o.
-     * @var string
-     */
-    protected $id;
-
-    /**
-     * $descricao Descri\u00E7\u00E3o do tipo de avalia\u00E7\u00E3o.
-     * @var string
-     */
-    protected $descricao;
-
-    /**
-     * $abreviatura Abreviatura do Tipo de Avalia\u00E7\u00E3o.
-     * @var string
-     */
-    protected $abreviatura;
-
-
-    /**
-     * Constructor
-     * @param mixed[] $data Associated array of property value initalizing the model
-     */
-    public function __construct(array $data = null)
-    {
-        if ($data != null) {
-            $this->id = $data["id"];
-            $this->descricao = $data["descricao"];
-            $this->abreviatura = $data["abreviatura"];
-        }
-    }
-
-    /**
-     * Gets id
      * @return string
      */
-    public function getId()
-    {
+    public function get_id() {
         return $this->id;
     }
 
     /**
-     * Sets id
-     * @param string $id Identificador do tipo de avalia\u00E7\u00E3o.
-     * @return $this
+     * @param string $id
      */
-    public function setId($id)
-    {
-
+    public function set_id($id) {
         $this->id = $id;
-        return $this;
     }
 
     /**
-     * Gets descricao
      * @return string
      */
-    public function getDescricao()
-    {
-        return $this->descricao;
+    public function get_description() {
+        return $this->description;
     }
 
     /**
-     * Sets descricao
-     * @param string $descricao Descri\u00E7\u00E3o do tipo de avalia\u00E7\u00E3o.
-     * @return $this
+     * @param string $description
      */
-    public function setDescricao($descricao)
-    {
-
-        $this->descricao = $descricao;
-        return $this;
+    public function set_description($description) {
+        $this->description = $description;
     }
 
     /**
-     * Gets abreviatura
      * @return string
      */
-    public function getAbreviatura()
-    {
-        return $this->abreviatura;
+    public function get_abbreviation() {
+        return $this->abbreviation;
     }
 
     /**
-     * Sets abreviatura
-     * @param string $abreviatura Abreviatura do Tipo de Avalia\u00E7\u00E3o.
-     * @return $this
+     * @param string $abbreviation
      */
-    public function setAbreviatura($abreviatura)
-    {
-        $this->abreviatura = $abreviatura;
-        return $this;
+    public function set_abbreviation($abbreviation) {
+        $this->abbreviation = $abbreviation;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function get_created_at() {
+        return $this->created_at;
+    }
+
+    /**
+     * @param \DateTime $created_at
+     */
+    public function set_created_at($created_at) {
+        $this->created_at = $created_at;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function get_updated_at() {
+        return $this->updated_at;
+    }
+
+    /**
+     * @param \DateTime $updated_at
+     */
+    public function set_updated_at($updated_at) {
+        $this->updated_at = $updated_at;
     }
 }

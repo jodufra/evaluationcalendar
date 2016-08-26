@@ -13,104 +13,247 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar\models
+ * @package   local_evaluationcalendar\models
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_evaluationcalendar\models;
-use \local_evaluationcalendar\api_exception;
 
+use local_evaluationcalendar\api_exception;
 
 /**
  * Class evaluation
  *
  * @category Class
- * @package local_evaluationcalendar\models
+ * @package  local_evaluationcalendar\models
  */
-class evaluation extends base_model
-{
+class evaluation extends base_model {
+
     /**
      * Array of property to type mappings. Used for (de)serialization
+     *
      * @var string[]
      */
     static $types = array(
-        'id' => 'string',
-        'data_inicio' => 'string',
-        'data_fim' => 'string',
-        'descricao' => 'string',
-        'local' => 'string',
-        'tipo_sala' => 'string',
-        'id_tipo_avaliacao' => 'string',
-        'id_unidade_curricular' => 'int',
-        'codigo_siges' => 'int',
-        'id_calendario' => 'string'
+            'id' => 'string',
+            'date_begin' => 'string',
+            'date_end' => 'string',
+            'description' => 'string',
+            'local' => 'string',
+            'room_type' => 'string',
+            'room' => 'string',
+            'evaluation_type_id' => 'string',
+            'course_id' => 'int',
+            'siges_code' => 'int',
+            'calendar_id' => 'string',
+            'user_id' => 'string',
+            'created_at' => 'DateTime',
+            'updated_at' => 'DateTime'
     );
 
     /**
      * Array of attributes where the key is the local name, and the value is the original name
+     *
      * @var string[]
      */
     static $attributeMap = array(
-        'id' => 'id',
-        'data_inicio' => 'dataInicio',
-        'data_fim' => 'dataFim',
-        'descricao' => 'descricao',
-        'local' => 'local',
-        'tipo_sala' => 'tipoSala',
-        'id_tipo_avaliacao' => 'idTipoAvaliacao',
-        'id_unidade_curricular' => 'idUnidadeCurricular',
-        'codigo_siges' => 'codigoSiges',
-        'id_calendario' => 'idCalendario'
+            'id' => 'id',
+            'date_begin' => 'dataInicio',
+            'date_end' => 'dataFim',
+            'description' => 'descricao',
+            'local' => 'local',
+            'room_type' => 'tipoSala',
+            'room' => 'sala',
+            'evaluation_type_id' => 'idTipoAvaliacao',
+            'course_id' => 'idUnidadeCurricular',
+            'siges_code' => 'codigoSiges',
+            'calendar_id' => 'idCalendario',
+            'user_id' => 'idUtilizador',
+            'created_at' => 'createdAt',
+            'updated_at' => 'updatedAt'
     );
 
     /**
      * Array of attributes to setter functions (for deserialization of responses)
+     *
      * @var string[]
      */
     static $setters = array(
-        'id' => 'setId',
-        'data_inicio' => 'setDataInicio',
-        'data_fim' => 'setDataFim',
-        'descricao' => 'setDescricao',
-        'local' => 'setLocal',
-        'tipo_sala' => 'setTipoSala',
-        'id_tipo_avaliacao' => 'setIdTipoAvaliacao',
-        'id_unidade_curricular' => 'setIdUnidadeCurricular',
-        'codigo_siges' => 'setCodigoSiges',
-        'id_calendario' => 'setIdCalendario'
+            'id' => 'set_id',
+            'date_begin' => 'set_date_begin',
+            'date_end' => 'set_date_end',
+            'description' => 'set_description',
+            'local' => 'set_local',
+            'room_type' => 'set_room_type',
+            'room' => 'set_room',
+            'evaluation_type_id' => 'set_evaluation_type_id',
+            'course_id' => 'set_course_id',
+            'siges_code' => 'set_siges_code',
+            'calendar_id' => 'set_calendar_id',
+            'user_id' => 'set_user_id',
+            'created_at' => 'set_created_at',
+            'updated_at' => 'set_updated_at'
     );
 
     /**
      * Array of attributes to getter functions (for serialization of requests)
+     *
      * @var string[]
      */
     static $getters = array(
-        'id' => 'getId',
-        'data_inicio' => 'getDataInicio',
-        'data_fim' => 'getDataFim',
-        'descricao' => 'getDescricao',
-        'local' => 'getLocal',
-        'tipo_sala' => 'getTipoSala',
-        'id_tipo_avaliacao' => 'getIdTipoAvaliacao',
-        'id_unidade_curricular' => 'getIdUnidadeCurricular',
-        'codigo_siges' => 'getCodigoSiges',
-        'id_calendario' => 'getIdCalendario'
+            'id' => 'get_id',
+            'date_begin' => 'get_date_begin',
+            'date_end' => 'get_date_end',
+            'description' => 'get_description',
+            'local' => 'get_local',
+            'room_type' => 'get_room_type',
+            'room' => 'get_room',
+            'evaluation_type_id' => 'get_evaluation_type_id',
+            'course_id' => 'get_course_id',
+            'siges_code' => 'get_siges_code',
+            'calendar_id' => 'get_calendar_id',
+            'user_id' => 'get_user_id',
+            'created_at' => 'get_created_at',
+            'updated_at' => 'get_updated_at'
     );
 
     /**
+     * $id Evaluation id.
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * $date_begin Evaluation begin date.
+     *
+     * @var string
+     */
+    protected $date_begin;
+
+    /**
+     * $date_end Evaluation end date.
+     *
+     * @var string
+     */
+    protected $date_end;
+
+    /**
+     * $description Evaluation description.
+     *
+     * @var string
+     */
+    protected $description;
+
+    /**
+     * $local Evaluation local (SALADEAULA|NAOSEAPLICA|OUTROLOCAL).
+     *
+     * @var string
+     */
+    protected $local;
+
+    /**
+     * $room_type Evaluation room type description.
+     *
+     * @var string
+     */
+    protected $room_type;
+
+    /**
+     * $evaluation_type_id Evaluation room.
+     *
+     * @var string
+     */
+    protected $room;
+
+    /**
+     * $evaluation_type_id Evaluation local id.
+     *
+     * @var string
+     */
+    protected $evaluation_type_id;
+
+    /**
+     * $course_id course id.
+     *
+     * @var int
+     */
+    protected $course_id;
+
+    /**
+     * $siges_code Siges Code (ex: 9119102).
+     *
+     * @var int
+     */
+    protected $siges_code;
+
+    /**
+     * $calendar_id Calendar id.
+     *
+     * @var string
+     */
+    protected $calendar_id;
+
+    /**
+     * $calendar_id User id.
+     *
+     * @var string
+     */
+    protected $user_id;
+
+    /**
+     * $updated_at Datetime of creation
+     *
+     * @var \DateTime
+     */
+    protected $created_at;
+
+    /**
+     * $updated_at Datetime of last update
+     *
+     * @var \DateTime
+     */
+    protected $updated_at;
+
+    /**
+     * Constructor
+     *
+     * @param mixed[] $data Associated array of property value to initialize the model
+     */
+    public function __construct(array $data = null) {
+
+        if ($data != null) {
+            $this->id = $data["id"];
+            $this->date_begin = $data["date_begin"];
+            $this->date_end = $data["date_end"];
+            $this->description = $data["description"];
+            $this->local = $data["local"];
+            $this->room_type = $data["room_type"];
+            $this->room = $data["room"];
+            $this->evaluation_type_id = $data["evaluation_type_id"];
+            $this->course_id = $data["course_id"];
+            $this->siges_code = $data["siges_code"];
+            $this->user_id = $data["user_id"];
+            $this->created_at = $data["created_at"];
+            $this->updated_at = $data["updated_at"];
+        }
+    }
+
+    /**
      * Get array of property to type mappings. Used for (de)serialization
-     * @return $types
+     *
+     * @return string[]
      */
     static function types() {
         return self::$types;
     }
 
-
     /**
      * Get array of attributes where the key is the local name, and the value is the original name
+     *
      * @return string[]
      */
     static function attributeMap() {
@@ -119,14 +262,16 @@ class evaluation extends base_model
 
     /**
      * Get array of attributes to setter functions (for deserialization of responses)
+     *
      * @return string[]
      */
-    static function setters() {
+    static function setters(){
         return self::$setters;
     }
 
     /**
      * Get array of attributes to getter functions (for serialization of requests)
+     *
      * @return string[]
      */
     static function getters() {
@@ -134,308 +279,213 @@ class evaluation extends base_model
     }
 
     /**
-     * @param $array evaluation[]
-     * @param $param string
+     * @param $array            evaluation[]
+     * @param $param            string
      * @param $comparison_value string
      * @return evaluation|null
      */
-    public static function select_instance_from_array($array, $param, $comparison_value){
+    public static function select_instance_from_array($array, $param, $comparison_value) {
         return parent::select_instance_from_array($array, $param, $comparison_value);
     }
 
     /**
-     * $id Identificador da avaliação.
-     * @var string
-     */
-    protected $id;
-
-    /**
-     * $data_inicio Data de Inicio da Avaliação.
-     * @var string
-     */
-    protected $data_inicio;
-
-    /**
-     * $data_fim Data de Fim da Avaliação.
-     * @var string
-     */
-    protected $data_fim;
-
-    /**
-     * $descricao Descrição da Avaliação.
-     * @var string
-     */
-    protected $descricao;
-
-    /**
-     * $local Local da Avaliação (SALADEAULA|NAOSEAPLICA|OUTROLOCAL).
-     * @var string
-     */
-    protected $local;
-
-    /**
-     * $tipo_sala Descrição da sala que o docente precisa para a avaliação.
-     * @var string
-     */
-    protected $tipo_sala;
-
-    /**
-     * $id_tipo_avaliacao Identificador do Tipo de Avaliação.
-     * @var string
-     */
-    protected $id_tipo_avaliacao;
-
-    /**
-     * $id_unidade_curricular Identificador da Unidade Curricular.
-     * @var int
-     */
-    protected $id_unidade_curricular;
-
-    /**
-     * $codigo_siges Código Siges da Unidade Curricular (ex: 9119102).
-     * @var int
-     */
-    protected $codigo_siges;
-
-    /**
-     * $id_calendario Identificador do Calendário.
-     * @var string
-     */
-    protected $id_calendario;
-
-
-    /**
-     * Constructor
-     * @param mixed[] $data Associated array of property value initalizing the model
-     */
-    public function __construct(array $data = null)
-    {
-
-        if ($data != null) {
-            $this->id = $data["id"];
-            $this->data_inicio = $data["data_inicio"];
-            $this->data_fim = $data["data_fim"];
-            $this->descricao = $data["descricao"];
-            $this->local = $data["local"];
-            $this->tipo_sala = $data["tipo_sala"];
-            $this->id_tipo_avaliacao = $data["id_tipo_avaliacao"];
-            $this->id_unidade_curricular = $data["id_unidade_curricular"];
-            $this->codigo_siges = $data["codigo_siges"];
-            $this->id_calendario = $data["id_calendario"];
-        }
-    }
-
-    /**
-     * Gets id
      * @return string
      */
-    public function getId()
-    {
+    public function get_id() {
         return $this->id;
     }
 
     /**
-     * Sets id
-     * @param string $id Identificador da avaliação.
-     * @return $this
+     * @param string $id
      */
-    public function setId($id)
-    {
-
+    public function set_id($id) {
         $this->id = $id;
-        return $this;
     }
 
     /**
-     * Gets data_inicio
      * @return string
      */
-    public function getDataInicio()
-    {
-        return $this->data_inicio;
+    public function get_date_begin() {
+        return $this->date_begin;
     }
 
     /**
-     * Sets data_inicio
-     * @param string $data_inicio Data de Inicio da Avaliação.
-     * @return $this
+     * @param string $date_begin
      */
-    public function setDataInicio($data_inicio)
-    {
-
-        $this->data_inicio = $data_inicio;
-        return $this;
+    public function set_date_begin($date_begin) {
+        $this->date_begin = $date_begin;
     }
 
     /**
-     * Gets data_fim
      * @return string
      */
-    public function getDataFim()
-    {
-        return $this->data_fim;
+    public function get_date_end() {
+        return $this->date_end;
     }
 
     /**
-     * Sets data_fim
-     * @param string $data_fim Data de Fim da Avaliação.
-     * @return $this
+     * @param string $date_end
      */
-    public function setDataFim($data_fim)
-    {
-
-        $this->data_fim = $data_fim;
-        return $this;
+    public function set_date_end($date_end) {
+        $this->date_end = $date_end;
     }
 
     /**
-     * Gets descricao
      * @return string
      */
-    public function getDescricao()
-    {
-        return $this->descricao;
+    public function get_description() {
+        return $this->description;
     }
 
     /**
-     * Sets descricao
-     * @param string $descricao Descrição da Avaliação.
-     * @return $this
+     * @param string $description
      */
-    public function setDescricao($descricao)
-    {
-
-        $this->descricao = $descricao;
-        return $this;
+    public function set_description($description) {
+        $this->description = $description;
     }
 
     /**
-     * Gets local
      * @return string
      */
-    public function getLocal()
-    {
+    public function get_local() {
         return $this->local;
     }
 
     /**
-     * Sets local 
-     * @param string $local Local da Avaliação (SALADEAULA|NAOSEAPLICA|OUTROLOCAL).
-     * @return $this
+     * @param string $local
      * @throws api_exception When $local different then allowed values
      */
-    public function setLocal($local)
-    {
+    public function set_local($local) {
         $allowed_values = array("SALADEAULA", "NAOSEAPLICA", "OUTROLOCAL");
         if (!in_array($local, $allowed_values)) {
             throw new api_exception("Invalid value for 'local', must be one of 'SALADEAULA', 'NAOSEAPLICA', 'OUTROLOCAL'");
         }
         $this->local = $local;
-        return $this;
     }
 
     /**
-     * Gets tipo_sala
      * @return string
      */
-    public function getTipoSala()
-    {
-        return $this->tipo_sala;
+    public function get_room() {
+        return $this->room;
     }
 
     /**
-     * Sets tipo_sala
-     * @param string $tipo_sala Descrição da sala que o docente precisa para a avaliação.
-     * @return $this
+     * @param string $room
      */
-    public function setTipoSala($tipo_sala)
-    {
-
-        $this->tipo_sala = $tipo_sala;
-        return $this;
+    public function set_room($room) {
+        $this->room = $room;
     }
 
     /**
-     * Gets id_tipo_avaliacao
      * @return string
      */
-    public function getIdTipoAvaliacao()
-    {
-        return $this->id_tipo_avaliacao;
+    public function get_room_type() {
+        return $this->room_type;
     }
 
     /**
-     * Sets id_tipo_avaliacao
-     * @param string $id_tipo_avaliacao Identificador do Tipo de Avaliação.
-     * @return $this
+     * @param string $room_type
      */
-    public function setIdTipoAvaliacao($id_tipo_avaliacao)
-    {
-
-        $this->id_tipo_avaliacao = $id_tipo_avaliacao;
-        return $this;
+    public function set_room_type($room_type) {
+        $this->room_type = $room_type;
     }
 
     /**
-     * Gets id_unidade_curricular
+     * @return string
+     */
+    public function get_evaluation_type_id() {
+        return $this->evaluation_type_id;
+    }
+
+    /**
+     * @param string $evaluation_type_id
+     */
+    public function set_evaluation_type_id($evaluation_type_id) {
+        $this->evaluation_type_id = $evaluation_type_id;
+    }
+
+    /**
      * @return int
      */
-    public function getIdUnidadeCurricular()
-    {
-        return $this->id_unidade_curricular;
+    public function get_course_id() {
+        return $this->course_id;
     }
 
     /**
-     * Sets id_unidade_curricular
-     * @param int $id_unidade_curricular Identificador da Unidade Curricular.
-     * @return $this
+     * @param int $course_id
      */
-    public function setIdUnidadeCurricular($id_unidade_curricular)
-    {
-
-        $this->id_unidade_curricular = $id_unidade_curricular;
-        return $this;
+    public function set_course_id($course_id) {
+        $this->course_id = $course_id;
     }
 
     /**
-     * Gets codigo_siges
      * @return int
      */
-    public function getCodigoSiges()
-    {
-        return $this->codigo_siges;
+    public function get_siges_code() {
+        return $this->siges_code;
     }
 
     /**
-     * Sets codigo_siges
-     * @param int $codigo_siges Código Siges da Unidade Curricular (ex: 9119102).
-     * @return $this
+     * @param int $siges_code
      */
-    public function setCodigoSiges($codigo_siges)
-    {
-
-        $this->codigo_siges = $codigo_siges;
-        return $this;
+    public function set_siges_code($siges_code) {
+        $this->siges_code = $siges_code;
     }
 
     /**
-     * Gets id_calendario
      * @return string
      */
-    public function getIdCalendario()
-    {
-        return $this->id_calendario;
+    public function get_calendar_id() {
+        return $this->calendar_id;
     }
 
     /**
-     * Sets id_calendario
-     * @param string $id_calendario Identificador do Calendário.
-     * @return $this
+     * @param string $calendar_id
      */
-    public function setIdCalendario($id_calendario)
-    {
+    public function set_calendar_id($calendar_id) {
+        $this->calendar_id = $calendar_id;
+    }
 
-        $this->id_calendario = $id_calendario;
-        return $this;
+    /**
+     * @return string
+     */
+    public function get_user_id() {
+        return $this->user_id;
+    }
+
+    /**
+     * @param string $user_id
+     */
+    public function set_user_id($user_id) {
+        $this->user_id = $user_id;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function get_created_at() {
+        return $this->created_at;
+    }
+
+    /**
+     * @param \DateTime $created_at
+     */
+    public function set_created_at($created_at) {
+        $this->created_at = $created_at;
+    }
+
+    /**
+     * @return \DateTime
+     */
+    public function get_updated_at() {
+        return $this->updated_at;
+    }
+
+    /**
+     * @param \DateTime $updated_at
+     */
+    public function set_updated_at($updated_at) {
+        $this->updated_at = $updated_at;
     }
 }

@@ -13,116 +13,260 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar\models
+ * @package   local_evaluationcalendar\models
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_evaluationcalendar\models;
-use \local_evaluationcalendar\api_exception;
 
+use local_evaluationcalendar\api_exception;
 
 /**
  * Class calendar
  *
  * @category Class
- * @package local_evaluationcalendar\models
+ * @package  local_evaluationcalendar\models
  */
-class calendar extends base_model
-{
+class calendar extends base_model {
+
     /**
      * Array of property to type mappings. Used for (de)serialization
+     *
      * @var string[]
      */
     static $types = array(
-        'id' => 'string',
-        'id_curso' => 'int',
-        'nome_curso' => 'string',
-        'abreviatura_regime_frequencia' => 'string',
-        'abrv_curso' => 'string',
-        'id_ano_letivo' => 'int',
-        'ano_letivo' => 'string',
-        'id_semestre' => 'int',
-        'semestre' => 'string',
-        'id_ep_aval' => 'int',
-        'epoca_avaliacao' => 'string',
-        'estado' => 'string',
-        'updatedAt' =>'DateTime'
+            'id' => 'string',
+            'course_id' => 'int',
+            'course_name' => 'string',
+            'course_scheme_abbr' => 'string',
+            'course_abbr' => 'string',
+            'academic_organization' => 'string',
+            'academic_year_id' => 'int',
+            'academic_year' => 'string',
+            'semester_id' => 'int',
+            'semester' => 'string',
+            'evaluation_epoch_id' => 'int',
+            'evaluation_epoch' => 'string',
+            'stage' => 'string',
+            'created_at' => 'DateTime',
+            'updated_at' => 'DateTime'
     );
 
     /**
      * Array of attributes where the key is the local name, and the value is the original name
+     *
      * @var string[]
      */
     static $attributeMap = array(
-        'id' => 'id',
-        'id_curso' => 'idCurso',
-        'nome_curso' => 'nomeCurso',
-        'abreviatura_regime_frequencia' => 'abreviaturaRegimeFrequencia',
-        'abrv_curso' => 'abrvCurso',
-        'id_ano_letivo' => 'idAnoLetivo',
-        'ano_letivo' => 'anoLetivo',
-        'id_semestre' => 'idSemestre',
-        'semestre' => 'semestre',
-        'id_ep_aval' => 'idEpAval',
-        'epoca_avaliacao' => 'epocaAvaliacao',
-        'estado' => 'estado',
-        'updatedAt' =>'updatedAt'
+            'id' => 'id',
+            'course_id' => 'idCurso',
+            'course_name' => 'nomeCurso',
+            'course_scheme_abbr' => 'abreviaturaRegimeFrequencia',
+            'course_abbr' => 'abrvCurso',
+            'academic_organization' => 'unidadeOrganica',
+            'academic_year_id' => 'idAnoLetivo',
+            'academic_year' => 'anoLetivo',
+            'semester_id' => 'idSemestre',
+            'semester' => 'semestre',
+            'evaluation_epoch_id' => 'idEpAval',
+            'evaluation_epoch' => 'epocaAvaliacao',
+            'stage' => 'estado',
+            'created_at' => 'createdAt',
+            'updated_at' => 'updatedAt'
     );
 
     /**
      * Array of attributes to setter functions (for deserialization of responses)
+     *
      * @var string[]
      */
     static $setters = array(
-        'id' => 'setId',
-        'id_curso' => 'setIdCurso',
-        'nome_curso' => 'setNomeCurso',
-        'abreviatura_regime_frequencia' => 'setAbreviaturaRegimeFrequencia',
-        'abrv_curso' => 'setAbrvCurso',
-        'id_ano_letivo' => 'setIdAnoLetivo',
-        'ano_letivo' => 'setAnoLetivo',
-        'id_semestre' => 'setIdSemestre',
-        'semestre' => 'setSemestre',
-        'id_ep_aval' => 'setIdEpAval',
-        'epoca_avaliacao' => 'setEpocaAvaliacao',
-        'estado' => 'setEstado',
-        'updatedAt' =>'set_updated_at'
+            'id' => 'set_id',
+            'course_id' => 'set_course_id',
+            'course_name' => 'set_course_name',
+            'course_scheme_abbr' => 'set_course_scheme_abbr',
+            'course_abbr' => 'set_course_abbr',
+            'academic_organization' => 'set_academic_organization',
+            'academic_year_id' => 'set_academic_year_id',
+            'academic_year' => 'set_academic_year',
+            'semester_id' => 'set_semester_id',
+            'semester' => 'set_semester',
+            'evaluation_epoch_id' => 'set_evaluation_epoch_id',
+            'evaluation_epoch' => 'set_evaluation_epoch',
+            'stage' => 'set_stage',
+            'created_at' => 'set_created_at',
+            'updated_at' => 'set_updated_at'
     );
 
     /**
      * Array of attributes to getter functions (for serialization of requests)
+     *
      * @var string[]
      */
     static $getters = array(
-        'id' => 'getId',
-        'id_curso' => 'getIdCurso',
-        'nome_curso' => 'getNomeCurso',
-        'abreviatura_regime_frequencia' => 'getAbreviaturaRegimeFrequencia',
-        'abrv_curso' => 'getAbrvCurso',
-        'id_ano_letivo' => 'getIdAnoLetivo',
-        'ano_letivo' => 'getAnoLetivo',
-        'id_semestre' => 'getIdSemestre',
-        'semestre' => 'getSemestre',
-        'id_ep_aval' => 'getIdEpAval',
-        'epoca_avaliacao' => 'getEpocaAvaliacao',
-        'estado' => 'getEstado',
-        'updatedAt' =>'get_updated_at'
+            'id' => 'get_id',
+            'course_id' => 'get_course_id',
+            'course_name' => 'get_course_name',
+            'course_scheme_abbr' => 'get_course_scheme_abbr',
+            'course_abbr' => 'get_course_abbr',
+            'academic_organization' => 'get_academic_organization',
+            'academic_year_id' => 'get_academic_year_id',
+            'academic_year' => 'get_academic_year',
+            'semester_id' => 'get_semester_id',
+            'semester' => 'get_semester',
+            'evaluation_epoch_id' => 'get_evaluation_epoch_id',
+            'evaluation_epoch' => 'get_evaluation_epoch',
+            'stage' => 'get_stage',
+            'created_at' => 'get_created_at',
+            'updated_at' => 'get_updated_at'
     );
+    /**
+     * $id Calendar id.
+     *
+     * @var string
+     */
+    protected $id;
+
+    /**
+     * $course_id Course id.
+     *
+     * @var int
+     */
+    protected $course_id;
+
+    /**
+     * $course_name Course name.
+     *
+     * @var string
+     */
+    protected $course_name;
+
+    /**
+     * $course_scheme_abbr Course scheme abbreviation (D|PL).
+     *
+     * @var string
+     */
+    protected $course_scheme_abbr;
+
+    /**
+     * $course_abbr Course abbreviation.
+     *
+     * @var string
+     */
+    protected $course_abbr;
+
+    /**
+     * $academic_organization Academic organization name.
+     *
+     * @var int
+     */
+    protected $academic_organization;
+
+    /**
+     * $academic_year_id Academic year id.
+     *
+     * @var int
+     */
+    protected $academic_year_id;
+
+    /**
+     * $academic_year Academic year.
+     *
+     * @var string
+     */
+    protected $academic_year;
+
+    /**
+     * $semester_id Semester id.
+     *
+     * @var int
+     */
+    protected $semester_id;
+
+    /**
+     * $semester Semester.
+     *
+     * @var string
+     */
+    protected $semester;
+
+    /**
+     * $evaluation_epoch_id Evaluation Epoch id.
+     *
+     * @var int
+     */
+    protected $evaluation_epoch_id;
+
+    /**
+     * $evaluation_epoch Evaluation Epoch.
+     * Normal, etc)
+     *
+     * @var string
+     */
+    protected $evaluation_epoch;
+
+    /**
+     * $stage Calendar Stage.
+     *
+     * @var string
+     */
+    protected $stage;
+
+    /**
+     * $updated_at Datetime of creation
+     *
+     * @var \DateTime
+     */
+    protected $created_at;
+
+    /**
+     * $updated_at Datetime of last update
+     *
+     * @var \DateTime
+     */
+    protected $updated_at;
+
+    /**
+     * Constructor
+     *
+     * @param mixed[] $data Associated array of property value to initialize the model
+     */
+    public function __construct(array $data = null) {
+
+        if ($data != null) {
+            $this->id = $data["id"];
+            $this->course_id = $data["course_id"];
+            $this->course_name = $data["course_name"];
+            $this->course_scheme_abbr = $data["course_scheme_abbr"];
+            $this->course_abbr = $data["course_abbr"];
+            $this->academic_organization = $data["academic_organization"];
+            $this->academic_year_id = $data["academic_year_id"];
+            $this->academic_year = $data["academic_year"];
+            $this->semester_id = $data["semester_id"];
+            $this->semester = $data["semester"];
+            $this->evaluation_epoch_id = $data["evaluation_epoch_id"];
+            $this->evaluation_epoch = $data["evaluation_epoch"];
+            $this->stage = $data["stage"];
+            $this->created_at = $data["created_at"];
+            $this->updated_at = $data["updated_at"];
+        }
+    }
 
     /**
      * Get array of property to type mappings. Used for (de)serialization
-     * @return $types
+     *
+     * @return string[]
      */
     static function types() {
         return self::$types;
     }
 
-
     /**
      * Get array of attributes where the key is the local name, and the value is the original name
+     *
      * @return string[]
      */
     static function attributeMap() {
@@ -131,14 +275,16 @@ class calendar extends base_model
 
     /**
      * Get array of attributes to setter functions (for deserialization of responses)
+     *
      * @return string[]
      */
-    static function setters() {
+    static function setters(){
         return self::$setters;
     }
 
     /**
      * Get array of attributes to getter functions (for serialization of requests)
+     *
      * @return string[]
      */
     static function getters() {
@@ -146,391 +292,227 @@ class calendar extends base_model
     }
 
     /**
-     * @param $array calendar[]
-     * @param $param string
+     * @param $array            calendar[]
+     * @param $param            string
      * @param $comparison_value string
      * @return calendar|null
      */
-    public static function select_instance_from_array($array, $param, $comparison_value){
+    static function select_instance_from_array($array, $param, $comparison_value) {
         return parent::select_instance_from_array($array, $param, $comparison_value);
     }
 
     /**
-     * $id Identificador do calendário.
-     * @var string
-     */
-    protected $id;
-
-    /**
-     * $id_curso Identificador do curso.
-     * @var int
-     */
-    protected $id_curso;
-
-    /**
-     * $nome_curso Nome do Curso.
-     * @var string
-     */
-    protected $nome_curso;
-
-    /**
-     * $abreviatura_regime_frequencia Abreviatura do regime do curso (D|PL).
-     * @var string
-     */
-    protected $abreviatura_regime_frequencia;
-
-    /**
-     * $abrv_curso Abreviatura do Curso.
-     * @var string
-     */
-    protected $abrv_curso;
-
-    /**
-     * $id_ano_letivo Identificador do ano letivo.
-     * @var int
-     */
-    protected $id_ano_letivo;
-
-    /**
-     * $ano_letivo Ano Letivo.
-     * @var string
-     */
-    protected $ano_letivo;
-
-    /**
-     * $id_semestre Identificador do semestre.
-     * @var int
-     */
-    protected $id_semestre;
-
-    /**
-     * $semestre Semestre.
-     * @var string
-     */
-    protected $semestre;
-
-    /**
-     * $id_ep_aval Identificador da \u00C9poca de Avalia\u00E7\u00E3o.
-     * @var int
-     */
-    protected $id_ep_aval;
-
-    /**
-     * $epoca_avaliacao \u00C9poca de Avalia\u00E7\u00E3o (ex. Avalia\u00E7a\u00F5 Cont\u00EDnua/Peri\u00F3dica, \u00C9poca Normal, etc)
-     * @var string
-     */
-    protected $epoca_avaliacao;
-
-    /**
-     * $estado Estado do Calendário.
-     * @var string
-     */
-    protected $estado;
-
-    /**
-     * $updatedAt Datetime of last update
-     * @var \DateTime
-     */
-    protected $updatedAt;
-
-
-    /**
-     * Constructor
-     * @param mixed[] $data Associated array of property value initalizing the model
-     */
-    public function __construct(array $data = null)
-    {
-
-        if ($data != null) {
-            $this->id = $data["id"];
-            $this->id_curso = $data["id_curso"];
-            $this->nome_curso = $data["nome_curso"];
-            $this->abreviatura_regime_frequencia = $data["abreviatura_regime_frequencia"];
-            $this->abrv_curso = $data["abrv_curso"];
-            $this->id_ano_letivo = $data["id_ano_letivo"];
-            $this->ano_letivo = $data["ano_letivo"];
-            $this->id_semestre = $data["id_semestre"];
-            $this->semestre = $data["semestre"];
-            $this->id_ep_aval = $data["id_ep_aval"];
-            $this->epoca_avaliacao = $data["epoca_avaliacao"];
-            $this->estado = $data["estado"];
-        }
-    }
-
-    /**
-     * Gets id
      * @return string
      */
-    public function getId()
-    {
+    public function get_id() {
         return $this->id;
     }
 
     /**
-     * Sets id
-     * @param string $id Identificador do calendário.
-     * @return $this
+     * @param string $id
      */
-    public function setId($id)
-    {
-
+    public function set_id($id) {
         $this->id = $id;
-        return $this;
     }
 
     /**
-     * Gets id_curso
      * @return int
      */
-    public function getIdCurso()
-    {
-        return $this->id_curso;
+    public function get_course_id() {
+        return $this->course_id;
     }
 
     /**
-     * Sets id_curso
-     * @param int $id_curso Identificador do curso.
-     * @return $this
+     * @param int $course_id
      */
-    public function setIdCurso($id_curso)
-    {
-
-        $this->id_curso = $id_curso;
-        return $this;
+    public function set_course_id($course_id) {
+        $this->course_id = $course_id;
     }
 
     /**
-     * Gets nome_curso
      * @return string
      */
-    public function getNomeCurso()
-    {
-        return $this->nome_curso;
+    public function get_course_name() {
+        return $this->course_name;
     }
 
     /**
-     * Sets nome_curso
-     * @param string $nome_curso Nome do Curso.
-     * @return $this
+     * @param string $course_name
      */
-    public function setNomeCurso($nome_curso)
-    {
-
-        $this->nome_curso = $nome_curso;
-        return $this;
+    public function set_course_name($course_name) {
+        $this->course_name = $course_name;
     }
 
     /**
-     * Gets abreviatura_regime_frequencia
      * @return string
      */
-    public function getAbreviaturaRegimeFrequencia()
-    {
-        return $this->abreviatura_regime_frequencia;
+    public function get_course_scheme_abbr() {
+        return $this->course_scheme_abbr;
     }
 
     /**
-     * Sets abreviatura_regime_frequencia
-     * @param string $abreviatura_regime_frequencia Abreviatura do regime do curso (D|PL).
-     * @return $this
+     * @param string $course_scheme_abbr
      */
-    public function setAbreviaturaRegimeFrequencia($abreviatura_regime_frequencia)
-    {
-
-        $this->abreviatura_regime_frequencia = $abreviatura_regime_frequencia;
-        return $this;
+    public function set_course_scheme_abbr($course_scheme_abbr) {
+        $this->course_scheme_abbr = $course_scheme_abbr;
     }
 
     /**
-     * Gets abrv_curso
      * @return string
      */
-    public function getAbrvCurso()
-    {
-        return $this->abrv_curso;
+    public function get_course_abbr() {
+        return $this->course_abbr;
     }
 
     /**
-     * Sets abrv_curso
-     * @param string $abrv_curso Abreviatura do Curso.
-     * @return $this
+     * @param string $course_abbr
      */
-    public function setAbrvCurso($abrv_curso)
-    {
-
-        $this->abrv_curso = $abrv_curso;
-        return $this;
+    public function set_course_abbr($course_abbr) {
+        $this->course_abbr = $course_abbr;
     }
 
     /**
-     * Gets id_ano_letivo
      * @return int
      */
-    public function getIdAnoLetivo()
-    {
-        return $this->id_ano_letivo;
+    public function get_academic_organization() {
+        return $this->academic_organization;
     }
 
     /**
-     * Sets id_ano_letivo
-     * @param int $id_ano_letivo Identificador do ano letivo.
-     * @return $this
+     * @param int $academic_organization
      */
-    public function setIdAnoLetivo($id_ano_letivo)
-    {
-
-        $this->id_ano_letivo = $id_ano_letivo;
-        return $this;
+    public function set_academic_organization($academic_organization) {
+        $this->academic_organization = $academic_organization;
     }
 
     /**
-     * Gets ano_letivo
-     * @return string
-     */
-    public function getAnoLetivo()
-    {
-        return $this->ano_letivo;
-    }
-
-    /**
-     * Sets ano_letivo
-     * @param string $ano_letivo Ano Letivo.
-     * @return $this
-     */
-    public function setAnoLetivo($ano_letivo)
-    {
-
-        $this->ano_letivo = $ano_letivo;
-        return $this;
-    }
-
-    /**
-     * Gets id_semestre
      * @return int
      */
-    public function getIdSemestre()
-    {
-        return $this->id_semestre;
+    public function get_academic_year_id() {
+        return $this->academic_year_id;
     }
 
     /**
-     * Sets id_semestre
-     * @param int $id_semestre Identificador do semestre.
-     * @return $this
+     * @param int $academic_year_id
      */
-    public function setIdSemestre($id_semestre)
-    {
-
-        $this->id_semestre = $id_semestre;
-        return $this;
+    public function set_academic_year_id($academic_year_id) {
+        $this->academic_year_id = $academic_year_id;
     }
 
     /**
-     * Gets semestre
      * @return string
      */
-    public function getSemestre()
-    {
-        return $this->semestre;
+    public function get_academic_year() {
+        return $this->academic_year;
     }
 
     /**
-     * Sets semestre
-     * @param string $semestre Semestre.
-     * @return $this
+     * @param string $academic_year
      */
-    public function setSemestre($semestre)
-    {
-
-        $this->semestre = $semestre;
-        return $this;
+    public function set_academic_year($academic_year) {
+        $this->academic_year = $academic_year;
     }
 
     /**
-     * Gets id_ep_aval
      * @return int
      */
-    public function getIdEpAval()
-    {
-        return $this->id_ep_aval;
+    public function get_semester_id() {
+        return $this->semester_id;
     }
 
     /**
-     * Sets id_ep_aval
-     * @param int $id_ep_aval Identificador da \u00C9poca de Avalia\u00E7\u00E3o.
-     * @return $this
+     * @param int $semester_id
      */
-    public function setIdEpAval($id_ep_aval)
-    {
-
-        $this->id_ep_aval = $id_ep_aval;
-        return $this;
+    public function set_semester_id($semester_id) {
+        $this->semester_id = $semester_id;
     }
 
     /**
-     * Gets epoca_avaliacao
      * @return string
      */
-    public function getEpocaAvaliacao()
-    {
-        return $this->epoca_avaliacao;
+    public function get_semester() {
+        return $this->semester;
     }
 
     /**
-     * Sets epoca_avaliacao
-     * @param string $epoca_avaliacao \u00C9poca de Avalia\u00E7\u00E3o (ex. Avalia\u00E7a\u00F5 Cont\u00EDnua/Peri\u00F3dica, \u00C9poca Normal, etc)
-     * @return $this
+     * @param string $semester
      */
-    public function setEpocaAvaliacao($epoca_avaliacao)
-    {
-
-        $this->epoca_avaliacao = $epoca_avaliacao;
-        return $this;
+    public function set_semester($semester) {
+        $this->semester = $semester;
     }
 
     /**
-     * Gets estado
+     * @return int
+     */
+    public function get_evaluation_epoch_id() {
+        return $this->evaluation_epoch_id;
+    }
+
+    /**
+     * @param int $evaluation_epoch_id
+     */
+    public function set_evaluation_epoch_id($evaluation_epoch_id) {
+        $this->evaluation_epoch_id = $evaluation_epoch_id;
+    }
+
+    /**
      * @return string
      */
-    public function getEstado()
-    {
-        return $this->estado;
+    public function get_evaluation_epoch() {
+        return $this->evaluation_epoch;
     }
 
     /**
-     * Sets estado
-     * @param string $estado Estado do Calendário.
-     * @return $this
-     * @throws api_exception When $local different then allowed values
+     * @param string $evaluation_epoch
      */
-    public function setEstado($estado)
-    {
+    public function set_evaluation_epoch($evaluation_epoch) {
+        $this->evaluation_epoch = $evaluation_epoch;
+    }
+
+    /**
+     * @return string
+     */
+    public function get_stage() {
+        return $this->stage;
+    }
+
+    /**
+     * @param string $stage
+     * @throws api_exception When $stage different then allowed values
+     */
+    public function set_stage($stage) {
         $allowed_values = array("PORELABORAR", "EMELABORACAO", "EMAPROVACAO", "APROVADO", "PUBLICADO");
-        if (!in_array($estado, $allowed_values)) {
-            throw new api_exception("Invalid value for 'estado', must be one of 'PORELABORAR', 'EMELABORACAO', 'EMAPROVACAO', 'APROVADO', 'PUBLICADO'");
+        if (!in_array($stage, $allowed_values)) {
+            throw new api_exception("Invalid value for 'stage', must be one of 'PORELABORAR', 'EMELABORACAO', 'EMAPROVACAO', 'APROVADO', 'PUBLICADO'");
         }
-        $this->estado = $estado;
-        return $this;
+        $this->stage = $stage;
     }
 
     /**
-     * Gets updated at
      * @return \DateTime
      */
-    public function get_updated_at()
-    {
-        return $this->updatedAt;
+    public function get_created_at() {
+        return $this->created_at;
     }
 
     /**
-     * Sets updated at
-     * @param \DateTime $updatedAt Updated at (DateTime("2016-05-12 17:40:04"))
-     * @return $this
+     * @param \DateTime $created_at
      */
-    public function set_updated_at($updatedAt)
-    {
+    public function set_created_at($created_at) {
+        $this->created_at = $created_at;
+    }
 
-        $this->updatedAt = $updatedAt;
-        return $this;
+    /**
+     * @return \DateTime
+     */
+    public function get_updated_at() {
+        return $this->updated_at;
+    }
+
+    /**
+     * @param \DateTime $updated_at
+     */
+    public function set_updated_at($updated_at) {
+        $this->updated_at = $updated_at;
     }
 }

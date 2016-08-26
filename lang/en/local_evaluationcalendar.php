@@ -31,6 +31,7 @@ $string['error_saving'] = 'Error saving changes';
 $string['is_required'] = '{$a} is required';
 $string['restore_defaults'] = 'Restore Defaults';
 $string['save'] = 'Save';
+$string['submit'] = 'Submit';
 
 // Form specific
 // Synchronize form
@@ -39,9 +40,9 @@ $string['synchronize_info'] = '<h3>Manual synchronization of evaluations.</h3>' 
     'the \'All\' option synchronizes all evaluations.</p>' .
     '<p>Both options, only synchronize evaluations from published calendars.</p>' .
     '<p><small>Be wary that a full synchronization might take a while.</small></p>';
-$string['synchronize_last_updated'] = 'Last Updated';
-$string['synchronize_all'] = 'All';
-$string['synchronize_submit'] = 'Submit';
+$string['synchronize_last_updated_evaluations'] = 'Last updated evaluations';
+$string['synchronize_all_evaluations'] = 'All evaluations';
+$string['synchronize_schedules'] = 'Schedules';
 $string['synchronize_nothing_to_synchronize'] = 'Nothing to synchronize';
 $string['synchronize_synchronized'] = 'Synchronized';
 $string['synchronize_synchronized_all'] = 'All Synchronized';
@@ -53,6 +54,9 @@ $string['config_api_authorization_header_value'] = 'API Authorization Header Val
 $string['config_api_host'] = 'API Host';
 $string['config_api_paths'] = 'API Url Paths';
 $string['config_development_mode'] = 'Development Mode';
+$string['config_schedule_csv_url'] = 'Schedule CSV URL';
+$string['config_schedule_csv_delimiter'] = 'Schedule CSV Delimiter';
+$string['config_schedule_csv_encoding'] = 'Schedule CSV Encoding';
 $string['config_defaults_restored'] = 'The configuration values were restored to it\'s defaults';
 $string['config_changes_saved'] = 'The configuration changes were saved';
 

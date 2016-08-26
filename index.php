@@ -12,6 +12,7 @@
 
 /**
  * [File Documentation]
+ *
  * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
@@ -22,6 +23,7 @@
 global $CFG, $OUTPUT;
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
+require_once($CFG->libdir . '/csvlib.class.php');
 require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
 // Initialize admin page
@@ -35,41 +37,50 @@ $moodle_url->param('section', $section);
 echo $OUTPUT->header();
 $section_form->display();
 
-if (strcmp($section, 'information') == 0) {
-    echo 'todo';
-} elseif (strcmp($section, 'synchronize') == 0) {
-    $synchronize_form_result = '';
-    $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
-    if ($data = $synchronize_form->get_data()) {
-        $evaluation_calendar = new local_evaluationcalendar(true);
-        if (strcmp($data->synchronize, 'all') === 0) {
-            $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars(true);
-        } else {
-            $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars();
+switch ($section) {
+    case 'information':
+        echo 'todo';
+        break;
+    case 'synchronize':
+        $synchronize_form_result = '';
+        $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
+        if ($data = $synchronize_form->get_data()) {
+            $evaluation_calendar = new local_evaluationcalendar(true);
+            switch ($data->synchronize){
+                case 'last_updated_evaluations':
+                    $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars();
+                    break;
+                case 'all_evaluations':
+                    $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars(true);
+                    break;
+                case 'schedules':
+                    $synchronize_form_result = $evaluation_calendar->synchronize_schedules();
+                    break;
+            }
+            // To show the report
+            $synchronize_form->definition_after_data($synchronize_form_result);
         }
-    }
-    $synchronize_form->display();
-    if ($synchronize_form_result) {
-        echo $synchronize_form_result;
-    }
-} elseif (strcmp($section, 'settings') == 0) {
-    $config_form_result = '';
-    $config_form = new local_evaluationcalendar_config_form($moodle_url);
-    $config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
-    if ($data = $config_form->get_data()) {
-        $evaluation_calendar = new local_evaluationcalendar(true);
-        if (!empty($data->restore_defaults)) {
-            $config_form_result = $evaluation_calendar->restore_config_to_defaults();
-        } else {
-            $config_form_result = $evaluation_calendar->update_config($data);
+        $synchronize_form->display();
+        break;
+    case 'settings':
+        $config_form_result = '';
+        $config_form = new local_evaluationcalendar_config_form($moodle_url);
+        $config_form->set_data(local_evaluationcalendar_config::Instance()->generate_form_data());
+        if ($data = $config_form->get_data()) {
+            $evaluation_calendar = new local_evaluationcalendar(true);
+            if (!empty($data->restore_defaults)) {
+                $config_form_result = $evaluation_calendar->restore_config_to_defaults();
+            } else {
+                $config_form_result = $evaluation_calendar->update_config($data);
+            }
+            // Since changes might been made we need to reload the form in order to display the correct information
+            $config_form->definition_after_data($config_form_result);
         }
-        // Since changes might been made we need to reload the form in order to display the correct information
-        $config_form->definition_after_data($config_form_result);
-    }
-    $config_form->display();
-} elseif (strcmp($section, 'reports') == 0) {
-    echo 'todo';
+        $config_form->display();
+        break;
+    case 'reports':
+        echo 'todo';
+        break;
 }
-
 echo $OUTPUT->footer();
 

@@ -34,7 +34,7 @@ class synchronize_task extends \core\task\scheduled_task
      */
     public function get_name() {
         // Shown in admin screens
-        return get_string('synchronize_task', 'local_evaluationcalendar');
+        return get_string('synchronize', 'local_evaluationcalendar');
     }
 
     /**
@@ -44,7 +44,7 @@ class synchronize_task extends \core\task\scheduled_task
         global $CFG;
         require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
-        $evaluationcalendar = new \local_evaluationcalendar(false);
-        $evaluationcalendar->synchronize_evaluation_calendars(false);
+        $evaluation_calendar = new \local_evaluationcalendar();
+        $evaluation_calendar->synchronize_evaluation_calendars(false);
     }
 }

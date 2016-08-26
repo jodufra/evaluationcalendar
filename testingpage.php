@@ -27,13 +27,10 @@ require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 // Initialize admin page
 admin_externalpage_setup('local_evaluationcalendar');
 
+$data = local_evaluationcalendar_api_interface::Instance()->get_schedules();
 
-$start = new DateTime("2000-01-01 00:00:00");
-$end = new DateTime();
+foreach ($data as $item) {
 
-var_dump(local_evaluationcalendar_api_interface::Instance()->get_evaluations_updated_by_calendar($start, $end, "d44691e92f7d48c486aeef88b393db34"));
-
-
-
-
+    echo $item.'<br>';
+}
 

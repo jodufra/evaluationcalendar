@@ -13,101 +13,72 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar\models
+ * @package   local_evaluationcalendar\models
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_evaluationcalendar\models;
-
 
 /**
  * Class error
  *
  * @category Class
- * @package local_evaluationcalendar\models
+ * @package  local_evaluationcalendar\models
  */
-class error extends base_model
-{
+class error extends base_model {
     /**
      * Array of property to type mappings. Used for (de)serialization
+     *
      * @var string[]
      */
     static $types = array(
-        'status_code' => 'int',
-        'message' => 'string'
+            'status_code' => 'int',
+            'message' => 'string'
     );
 
     /**
      * Array of attributes where the key is the local name, and the value is the original name
+     *
      * @var string[]
      */
     static $attributeMap = array(
-        'status_code' => 'statusCode',
-        'message' => 'message'
+            'status_code' => 'statusCode',
+            'message' => 'message'
     );
 
     /**
      * Array of attributes to setter functions (for deserialization of responses)
+     *
      * @var string[]
      */
     static $setters = array(
-        'status_code' => 'setStatusCode',
-        'message' => 'setMessage'
+            'status_code' => 'set_status_code',
+            'message' => 'set_message'
     );
 
     /**
      * Array of attributes to getter functions (for serialization of requests)
+     *
      * @var string[]
      */
     static $getters = array(
-        'status_code' => 'getStatusCode',
-        'message' => 'getMessage'
+            'status_code' => 'get_status_code',
+            'message' => 'get_message'
     );
 
     /**
-     * Get array of property to type mappings. Used for (de)serialization
-     * @return $types
-     */
-    static function types() {
-        return self::$types;
-    }
-
-
-    /**
-     * Get array of attributes where the key is the local name, and the value is the original name
-     * @return string[]
-     */
-    static function attributeMap() {
-        return self::$attributeMap;
-    }
-
-    /**
-     * Get array of attributes to setter functions (for deserialization of responses)
-     * @return string[]
-     */
-    static function setters() {
-        return self::$setters;
-    }
-
-    /**
-     * Get array of attributes to getter functions (for serialization of requests)
-     * @return string[]
-     */
-    static function getters() {
-        return self::$getters;
-    }
-
-    /**
-     * $status_code C\u00F3digo HTTP do erro
+     * $status_code HTTP error code
+     *
      * @var int
      */
     protected $status_code;
 
     /**
-     * $message Descri\u00E7\u00E3o do erro
+     * $message Error description
+     *
      * @var string
      */
     protected $message;
@@ -115,10 +86,10 @@ class error extends base_model
 
     /**
      * Constructor
-     * @param mixed[] $data Associated array of property value initalizing the model
+     *
+     * @param mixed[] $data Associated array of property value to initialize the model
      */
-    public function __construct(array $data = null)
-    {
+    public function __construct(array $data = null) {
 
         if ($data != null) {
             $this->status_code = $data["status_code"];
@@ -127,45 +98,67 @@ class error extends base_model
     }
 
     /**
-     * Gets status_code
-     * @return int
+     * Get array of property to type mappings. Used for (de)serialization
+     *
+     * @return string[]
      */
-    public function getStatusCode()
-    {
+    static function types() {
+        return self::$types;
+    }
+
+    /**
+     * Get array of attributes where the key is the local name, and the value is the original name
+     *
+     * @return string[]
+     */
+    static function attributeMap() {
+        return self::$attributeMap;
+    }
+
+    /**
+     * Get array of attributes to setter functions (for deserialization of responses)
+     *
+     * @return string[]
+     */
+    static function setters() {
+        return self::$setters;
+    }
+
+    /**
+     * Get array of attributes to getter functions (for serialization of requests)
+     *
+     * @return string[]
+     */
+    static function getters() {
+        return self::$getters;
+    }
+
+    /**
+     * @return int get StatusCode
+     */
+    public function get_status_code() {
         return $this->status_code;
     }
 
     /**
-     * Sets status_code
-     * @param int $status_code C\u00F3digo HTTP do erro
-     * @return $this
+     * @param int $status_code
      */
-    public function setStatusCode($status_code)
-    {
-
+    public function set_status_code($status_code) {
         $this->status_code = $status_code;
-        return $this;
     }
 
     /**
-     * Gets message
-     * @return string
+     * @return string get Message
      */
-    public function getMessage()
-    {
+    public function get_message() {
         return $this->message;
     }
 
     /**
-     * Sets message
-     * @param string $message Descri\u00E7\u00E3o do erro
-     * @return $this
+     * @param string $message
      */
-    public function setMessage($message)
-    {
-
+    public function set_message($message) {
         $this->message = $message;
-        return $this;
     }
 
 }

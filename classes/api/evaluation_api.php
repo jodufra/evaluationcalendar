@@ -12,6 +12,7 @@
 
 /**
  * [File Documentation]
+ *
  * @package   local_evaluationcalendar\api
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
@@ -25,33 +26,33 @@ use local_evaluationcalendar\api_client;
 use local_evaluationcalendar\api_exception;
 use local_evaluationcalendar\models\evaluation;
 
-
 /**
  * Class evaluation_api
+ *
  * @category Class
  * @package  local_evaluationcalendar\api
  */
-class evaluation_api extends base_api
-{
+class evaluation_api extends base_api {
 
     /**
      * Class path of the returning model of the api
+     *
      * @var string
      */
     private static $_model = '\local_evaluationcalendar\models\evaluation';
 
     /**
      * Constructor
-     * @param api_client |null $apiClient The api client to use
+     *
+     * @param api_client |null $api_client The api client to use
      */
-    function __construct($apiClient = null)
-    {
-        parent::__construct($apiClient);
+    function __construct($api_client = null) {
+        parent::__construct($api_client);
     }
 
-
     /**
-     * Gets evaluations list
+     * Calls the api_client to get a list of evaluations.
+     *
      * @param string $q         (optional) Allows to make queries over several attributes
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
@@ -59,14 +60,14 @@ class evaluation_api extends base_api
      * @return evaluation[]
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations($q = null, $fields = null, $sort = null, $arguments = null)
-    {
+    public function get_evaluations($q = null, $fields = null, $sort = null, $arguments = null) {
         list($response, $statusCode, $httpHeader) = $this->get_evaluations_with_http_info($q, $fields, $sort, $arguments);
         return $response;
     }
 
     /**
-     * Gets evaluations list
+     * Calls the api_client to get a list of evaluations together with the response status and header
+     *
      * @param string $q         (optional) Allows to make queries over several attributes
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
@@ -74,25 +75,24 @@ class evaluation_api extends base_api
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null, $arguments = null)
-    {
+    public function get_evaluations_with_http_info($q = null, $fields = null, $sort = null, $arguments = null) {
         // parse inputs
         $resourcePath = \local_evaluationcalendar_config::Instance()->api_paths['evaluations'];
         $queryParams = array();
 
         // query params
         if ($q !== null) {
-            $queryParams['q'] = $this->apiClient->getSerializer()->toQueryValue($q);
+            $queryParams['q'] = $this->api_client->getSerializer()->toQueryValue($q);
         }
         if ($fields !== null) {
-            $queryParams['fields'] = $this->apiClient->getSerializer()->toQueryValue($fields);
+            $queryParams['fields'] = $this->api_client->getSerializer()->toQueryValue($fields);
         }
         if ($sort !== null) {
-            $queryParams['sort'] = $this->apiClient->getSerializer()->toQueryValue($sort);
+            $queryParams['sort'] = $this->api_client->getSerializer()->toQueryValue($sort);
         }
         if ($arguments !== null) {
             foreach ($arguments as $arg => $value) {
-                $queryParams[$arg] = $this->apiClient->getSerializer()->toQueryValue($value);
+                $queryParams[$arg] = $this->api_client->getSerializer()->toQueryValue($value);
             }
         }
 
@@ -101,33 +101,33 @@ class evaluation_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model . '[]');
+            return parent::call_api_client($resourcePath, $queryParams, self::$_model . '[]');
         } catch (api_exception $e) {
             throw $e;
         }
     }
 
-
     /**
-     * Devolve uma lista de avaliações consoante a lista de códigos de Unidades Curriculares.
-     * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
+     * Calls the api_client to get a list of evaluations based on given list of subject codes.
+     *
+     * @param string $uc_list String containing several subject codes glued together with a comma (ex: "9119123,9119456,9119789")
      * @return evaluation[]
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations_from_ucs($uc_list)
-    {
+    public function get_evaluations_from_ucs($uc_list) {
         list($response, $statusCode, $httpHeader) = $this->get_evaluations_form_ucs_with_http_info($uc_list);
         return $response;
     }
 
     /**
-     * Devolve uma lista de avaliações consoante a lista de códigos de Unidades Curriculares.
-     * @param string $uc_list Lista de c\u00F3digos de Unidades Curriculares (ex.:9119238,9119255) (required)
+     * Calls the api_client to get a list of evaluations based on given list of subject identifiers.
+     * Also returns the response status and header
+     *
+     * @param string $uc_list String containing several subject codes glued together with a comma (ex: "9119123,9119456,9119789")
      * @return array evaluation[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
      */
-    public function get_evaluations_form_ucs_with_http_info($uc_list)
-    {
+    public function get_evaluations_form_ucs_with_http_info($uc_list) {
 
         // verify the required parameter 'uc_list' is set
         if ($uc_list === null) {
@@ -140,7 +140,7 @@ class evaluation_api extends base_api
 
         // query params
         if ($uc_list !== null) {
-            $queryParams['listaUc'] = $this->apiClient->getSerializer()->toQueryValue($uc_list);
+            $queryParams['listaUc'] = $this->api_client->getSerializer()->toQueryValue($uc_list);
         }
 
         // default format to json
@@ -148,7 +148,7 @@ class evaluation_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model . '[]');
+            return parent::call_api_client($resourcePath, $queryParams, self::$_model . '[]');
         } catch (api_exception $e) {
             throw $e;
         }

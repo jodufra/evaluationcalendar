@@ -23,7 +23,8 @@
 
 defined('MOODLE_INTERNAL') || die;
 
-if ($hassiteconfig) { // Needs this condition or there is error on login page.
+if ($hassiteconfig) {
+    global $CFG;
     $ADMIN->add('development', new admin_externalpage('local_evaluationcalendar',
-        get_string('pluginname', 'local_evaluationcalendar'), new moodle_url('/local/evaluationcalendar/index.php')));
+        get_string('pluginname', 'local_evaluationcalendar'), "$CFG->wwwroot/local/evaluationcalendar/index.php"));
 }

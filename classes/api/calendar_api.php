@@ -12,6 +12,7 @@
 
 /**
  * [File Documentation]
+ *
  * @package   local_evaluationcalendar\api
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
@@ -25,32 +26,33 @@ use local_evaluationcalendar\api_client;
 use local_evaluationcalendar\api_exception;
 use local_evaluationcalendar\models\calendar;
 
-
 /**
  * Class calendar_api
+ *
  * @category Class
  * @package  local_evaluationcalendar\api
  */
-class calendar_api extends base_api
-{
+class calendar_api extends base_api {
 
     /**
      * Class path of the returning model of the api
+     *
      * @var string
      */
     private static $_model = '\local_evaluationcalendar\models\calendar';
 
     /**
      * Constructor
+     *
      * @param api_client |null $apiClient The api client to use
      */
-    function __construct($apiClient = null)
-    {
+    function __construct($apiClient = null) {
         parent::__construct($apiClient);
     }
 
     /**
-     * Devolve uma lista de calend\u00E1rios.
+     * Calls the api_client to get a list of evaluation calendars.
+     *
      * @param string $q         (optional) Allows to make queries over several attributes
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
@@ -58,15 +60,14 @@ class calendar_api extends base_api
      * @return calendar[]
      * @throws api_exception on non-2xx response
      */
-    public function get_calendars($q = null, $fields = null, $sort = null, $arguments = null)
-    {
+    public function get_calendars($q = null, $fields = null, $sort = null, $arguments = null) {
         list($response, $statusCode, $httpHeader) = $this->get_calendars_with_http_info($q, $fields, $sort, $arguments);
         return $response;
     }
 
-
     /**
-     * Devolve uma lista de calendários.
+     * Calls the api_client to get a list of evaluation calendars together with the response status and header
+     *
      * @param string $q         (optional) Allows to make queries over several attributes
      * @param string $fields    (optional) Allows a selection of the attributes
      * @param string $sort      (optional) Allows sorting the results by attribute
@@ -74,8 +75,7 @@ class calendar_api extends base_api
      * @return array calendar[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
      */
-    public function get_calendars_with_http_info($q = null, $fields = null, $sort = null, $arguments = null)
-    {
+    public function get_calendars_with_http_info($q = null, $fields = null, $sort = null, $arguments = null) {
 
         // parse inputs
         $resourcePath = \local_evaluationcalendar_config::Instance()->api_paths['calendars'];
@@ -83,13 +83,13 @@ class calendar_api extends base_api
 
         // query params
         if ($q !== null) {
-            $queryParams['q'] = $this->apiClient->getSerializer()->toQueryValue($q);
+            $queryParams['q'] = $this->api_client->getSerializer()->toQueryValue($q);
         }
         if ($fields !== null) {
-            $queryParams['fields'] = $this->apiClient->getSerializer()->toQueryValue($fields);
+            $queryParams['fields'] = $this->api_client->getSerializer()->toQueryValue($fields);
         }
         if ($sort !== null) {
-            $queryParams['sort'] = $this->apiClient->getSerializer()->toQueryValue($sort);
+            $queryParams['sort'] = $this->api_client->getSerializer()->toQueryValue($sort);
         }
         if ($arguments !== null) {
             foreach ($arguments as $arg => $value) {
@@ -103,7 +103,7 @@ class calendar_api extends base_api
 
         // make the API Call
         try {
-            return parent::callApiClient($resourcePath, api_client::$GET, $queryParams, self::$_model . '[]');
+            return parent::call_api_client($resourcePath, $queryParams, self::$_model . '[]');
         } catch (api_exception $e) {
             throw $e;
         }
