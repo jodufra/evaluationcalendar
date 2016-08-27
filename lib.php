@@ -72,13 +72,11 @@ class local_evaluationcalendar_section_form {
     public function display() {
         $items = [];
         foreach ($this->sections as $s) {
-            $section_name = get_string($s, 'local_evaluationcalendar');
-            if (strcmp($s, $this->section) === 0) {
-                $items[] = '<li><span>' . $section_name . '</span></li>';
-            } else {
-                $param = array('section' => $s);
-                $items[] = '<li><a href="' . $this->moodle_url->out(true, $param) . '">' . $section_name . '</a></li>';
-            }
+            $li_class = strcmp($s, $this->section) === 0 ? ' class="active"' : '';
+            $a_style = strcmp($s, $this->section) === 0 ? ' style="color:inherit;"' : '';
+            $href = $this->moodle_url->out(true, array('section' => $s));
+            $name = get_string($s, 'local_evaluationcalendar');
+            $items[] = '<li' . $li_class . '><a href="' . $href . '"' . $a_style . '>' . $name . '</a></li>';
         }
         $html = '<div class="clearfix text-center">' .
                 '<nav class="breadcrumb-nav block_navigation block" style="float: none; font-size: 125%;">' .
@@ -273,6 +271,11 @@ class local_evaluationcalendar_config_form extends moodleform {
         $mform->addElement('text', 'schedule_csv_url', $string, $big);
         $mform->setType('schedule_csv_url', PARAM_NOTAGS);
 
+        // schedule csv dirty src
+        $string = get_string('config_schedule_csv_dirty_src', 'local_evaluationcalendar');
+        $mform->addElement('advcheckbox', 'schedule_csv_dirty_src', $string);
+        $mform->setType('schedule_csv_dirty_src', PARAM_BOOL);
+
         // schedule csv delimiter
         $delimiters = csv_import_reader::get_delimiter_list();
         $string = get_string('config_schedule_csv_delimiter', 'local_evaluationcalendar');
@@ -444,6 +447,7 @@ class local_evaluationcalendar {
                 $log->params = [];
                 array_push($report->logs, $log);
                 $report->errors++;
+
             }
         } else {
             $log = new stdClass();
@@ -501,8 +505,8 @@ class local_evaluationcalendar {
                 $record = new local_evaluationcalendar_schedule();
                 $record->groupid = $group->id;
                 $record->courseid = $group->courseid;
-                $record->week_day = $schedule->get_week_day();
-                $record->time_start = $schedule->get_time_start();
+                $record->weekday = $schedule->get_week_day();
+                $record->timestart = $schedule->get_time_start();
                 $records[] = $record;
             }
         }
@@ -617,10 +621,14 @@ class local_evaluationcalendar {
             }
         }
 
+        // join the different evaluations
         $api_map->evaluations = array_merge($rpc_evaluations, $opc_evaluations);
 
         // we get the evaluation types just for the extra information to fill in the description of a event
         $api_map->evaluation_types = $this->api_interface->get_evaluation_types();
+
+        // get all schedules
+        $api_map->schedules = \local_evaluationcalendar_schedule::read_all();
 
         // we create a map of id => object foreach element type, and then we store them in a single object
         // resulting in something like: $api_assoc_map->calendars[$calendar_id]
@@ -674,6 +682,42 @@ class local_evaluationcalendar {
                 array_push($report->logs, $log);
                 $report->errors++;
                 continue;
+            }
+
+            $assoc_courses = array();
+            array_walk($courses, function($course) use (&$assoc_courses) {
+                $assoc_courses[$course->id] = $course;
+            });
+
+            // retrieves the groups of the retrieved courses
+            if (count($courses) > 1) {
+                $ids = [];
+                foreach ($courses as $course) {
+                    $ids[] = $course->id;
+                }
+                $query = 'courseid IN (' . implode(',', $ids) . ')';
+            } else {
+                $query = 'courseid = ' . $courses[0]->id;
+            }
+            $groups = $DB->get_records_select('groups', $query);
+
+            $assoc_groups = array();
+            array_walk($groups, function($group) use (&$assoc_groups) {
+                $assoc_groups[$group->id] = $group;
+            });
+
+            // get time variables to use later
+            $date_start = new DateTime($evaluation->get_date_begin());
+            $weekday = $date_start->format("N") + 1;
+            $weekday = $weekday > 7 ? 1 : $weekday;
+            $timestart = $date_start->format("G:i");
+
+            // retrieve schedules related to the courses and to this evaluation
+            $schedules = array();
+            foreach ($api_map->schedules as $sch) {
+                if (isset($assoc_groups[$sch->groupid]) && $sch->weekday == $weekday && $sch->timestart == $timestart) {
+                    $schedules[] = $sch;
+                }
             }
 
             // retrieve all calendar events related with the evaluationcalendar events
@@ -751,7 +795,6 @@ class local_evaluationcalendar {
                 $calendar_event->format = 1;
                 $calendar_event->userid = 0;
                 $calendar_event->modulename = 0;
-                $calendar_event->eventtype = "course";
 
                 // course id
                 $calendar_event->courseid = $courses[$course_key]->id;
@@ -828,25 +871,38 @@ class local_evaluationcalendar {
      * @return calendar_event
      */
     private function edit_calendar_event($api_map, $evaluation, $calendar_event) {
-        // first we get the type of evaluation
+
+        // type of evaluation, to add some information in the name and description
         $evaluation_type = \local_evaluationcalendar\models\evaluation_type::select_instance_from_array(
                 $api_map->evaluation_types, 'id', $evaluation->get_evaluation_type_id());
-        // then we set the name
+
+        // name
         $calendar_event->name = (!is_null($evaluation_type) ? $evaluation_type->get_abbreviation() : '');
         if ($evaluation->get_description() !== '') {
             $calendar_event->name = $calendar_event->name . ' (' . $evaluation->get_description() . ')';
         }
+
         // description
         $calendar_event->description = $calendar_event->name;
-        // time stamps
-        $time_start = new DateTime($evaluation->get_date_begin(), new DateTimeZone('Europe/Rome'));
-        $time_start_stamp = $time_start->getTimestamp();
-        $time_end = new DateTime($evaluation->get_date_end(), new DateTimeZone('Europe/Rome'));
-        $time_end_stamp = $time_end->getTimestamp();
-        $calendar_event->timestart = $time_start_stamp;
-        if ($time_end_stamp) {
-            $calendar_event->timeduration = $time_end_stamp - $time_start_stamp;
+
+        // time stamps // new DateTimeZone('Europe/Rome') may be needed
+        // start
+        $date_start = new DateTime($evaluation->get_date_begin());
+        $timestamp_start = $date_start->getTimestamp();
+        $calendar_event->timestart = $timestamp_start;
+        // end
+        $date_end = new DateTime($evaluation->get_date_end());
+        $timestamp_end = $date_end->getTimestamp();
+        if ($timestamp_end) {
+            $calendar_event->timeduration = $timestamp_end - $timestamp_start;
         }
+
+        // group
+        $week_day = $date_start->format("N") + 1;
+        $week_day = $week_day > 7 ? 1 : $week_day;
+        $time_start = $date_start->format("G:i");
+
+        $calendar_event->eventtype = "course";
         return $calendar_event;
     }
 
@@ -877,6 +933,9 @@ class local_evaluationcalendar {
 
         // schedule csv url
         $instance->schedule_csv_url = $config->schedule_csv_url;
+
+        // development mode
+        $instance->schedule_csv_dirty_src = $config->schedule_csv_dirty_src;
 
         // schedule csv delimiter
         $delimiters = csv_import_reader::get_delimiter_list();
@@ -1100,9 +1159,10 @@ class local_evaluationcalendar_api_interface {
      * @return \local_evaluationcalendar\models\schedule[]
      */
     function get_schedules($arguments = null) {
-        $encoding = 'ISO-8859-1';
+        $encoding = local_evaluationcalendar_config::Instance()->schedule_csv_encoding;;
         $delimiter = local_evaluationcalendar_config::Instance()->schedule_csv_delimiter;
-        return $this->schedule_api->get_schedules($encoding, $delimiter, $arguments);
+        $dirty_src = local_evaluationcalendar_config::Instance()->schedule_csv_dirty_src;
+        return $this->schedule_api->get_schedules($encoding, $delimiter, $dirty_src, $arguments);
     }
 }
 
@@ -1117,6 +1177,7 @@ class local_evaluationcalendar_api_interface {
  * @property string   $api_host
  * @property array    $api_paths
  * @property string   $schedule_csv_url
+ * @property bool     $schedule_csv_dirty_src
  * @property string   $schedule_csv_delimiter
  * @property string   $schedule_csv_encoding
  * @property DateTime $last_synchronization
@@ -1140,7 +1201,10 @@ class local_evaluationcalendar_config {
     );
 
     /** @var string Default Schedule csv url */
-    private static $DEFAULT_SCHEDULE_CSV_URL = 'http://www.dei.estg.ipleiria.pt/intranet/horarios/ws/get_horarios_agcp_1semestre.php';
+    private static $DEFAULT_SCHEDULE_CSV_URL = 'http://www.dei.estg.ipleiria.pt/intranet/horarios/ws/get_horarios_agcp.php';
+
+    /** @var bool Default Schedule csv delimiter */
+    private static $DEFAULT_SCHEDULE_CSV_DIRTY_SRC = true;
 
     /** @var string Default Schedule csv delimiter */
     private static $DEFAULT_SCHEDULE_CSV_DELIMITER = ';';
@@ -1156,12 +1220,15 @@ class local_evaluationcalendar_config {
      */
     private function __construct() {
         $this->properties = new stdClass();
+        // have default
         $this->properties->api_authorization_header = local_evaluationcalendar_config::$DEFAULT_API_AUTHORIZATION_HEADER;
         $this->properties->api_host = local_evaluationcalendar_config::$DEFAULT_API_HOST;
         $this->properties->api_paths = local_evaluationcalendar_config::$DEFAULT_API_PATHS;
         $this->properties->schedule_csv_url = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_URL;
+        $this->properties->schedule_csv_dirty_src = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DIRTY_SRC;
         $this->properties->schedule_csv_delimiter = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DELIMITER;
         $this->properties->schedule_csv_encoding = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_ENCODING;
+        // doesn't have default
         $this->properties->last_synchronization = new DateTime('1970-01-01 00:00:01');
         $this->properties->development_mode = false;
         $this->read();
@@ -1279,6 +1346,7 @@ class local_evaluationcalendar_config {
         $this->api_host = local_evaluationcalendar_config::$DEFAULT_API_HOST;
         $this->api_paths = local_evaluationcalendar_config::$DEFAULT_API_PATHS;
         $this->schedule_csv_url = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_URL;
+        $this->schedule_csv_dirty_src = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DIRTY_SRC;
         $this->schedule_csv_delimiter = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DELIMITER;
         $this->schedule_csv_encoding = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_ENCODING;
     }
@@ -1298,6 +1366,8 @@ class local_evaluationcalendar_config {
             $result['path_' . $key] = $value;
         }
         $result['schedule_csv_url'] = $this->properties->schedule_csv_url;
+
+        $result['schedule_csv_dirty_src'] = $this->properties->schedule_csv_dirty_src;
 
         $delimiters = csv_import_reader::get_delimiter_list();
         foreach ($delimiters as $key => $value) {
@@ -1581,8 +1651,8 @@ class local_evaluationcalendar_event {
  * @property int    $id                 The id within the schedule table
  * @property int    $courseid           The course id
  * @property int    $groupid            The group id
- * @property string $week_day           The number of the week day (1 = Sunday, 7 = Saturday)
- * @property string $time_start         The time the schedule starts in 24h format (ex "09:30")
+ * @property string $weekday            The number of the week day (1 = Sunday, 7 = Saturday)
+ * @property string $timestart          The time the schedule starts in 24h format (ex "09:30")
  */
 class local_evaluationcalendar_schedule {
 
@@ -1609,11 +1679,11 @@ class local_evaluationcalendar_schedule {
         if (empty($data->groupid)) {
             $data->groupid = 0;
         }
-        if (empty($data->week_day)) {
-            $data->week_day = "1";
+        if (empty($data->weekday)) {
+            $data->weekday = "1";
         }
-        if (empty($data->time_start)) {
-            $data->time_start = "00:00";
+        if (empty($data->timestart)) {
+            $data->timestart = "00:00";
         }
         $this->properties = $data;
     }

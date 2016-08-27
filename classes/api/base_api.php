@@ -161,24 +161,6 @@ class base_api {
      * @param string $input              What contains the csv content
      * @param string $row_delimiter      CSV rows are separated by this character
      * @param string $delimiter          CSV items are separated by this character
-     * @return array
-     * @throws \coding_exception
-     */
-    public function parse_csv($input, $row_delimiter = "\n", $delimiter = ";") {
-        //parse the rows
-        $result = explode($row_delimiter, $input);
-
-        //parse the items in rows
-        foreach ($result as &$row) {
-            $row = str_getcsv($row, $delimiter);
-        }
-        return $result;
-    }
-
-    /**
-     * @param string $input              What contains the csv content
-     * @param string $row_delimiter      CSV rows are separated by this character
-     * @param string $delimiter          CSV items are separated by this character
      * @param bool   $has_header         For the function to know if it already has an header
      * @param array  $header_replacement In case you wish to replace the csv header
      * @return object
@@ -202,6 +184,7 @@ class base_api {
             }
         }
 
+        // turn csv string to array
         $result = $this->parse_csv($input, $row_delimiter, $delimiter);
 
         // create assoc
@@ -212,7 +195,30 @@ class base_api {
         // remove column header before returning
         array_shift($result);
 
-        return (object)$result;
+        return (object) $result;
+    }
+
+    /**
+     * @param string $input         What contains the csv content
+     * @param string $row_delimiter CSV rows are separated by this character
+     * @param string $delimiter     CSV items are separated by this character
+     * @return array
+     * @throws \coding_exception
+     */
+    public function parse_csv($input, $row_delimiter = "\n", $delimiter = ";") {
+        //parse the rows
+        $result = explode($row_delimiter, $input);
+
+        // remove empty lines, just in case
+        $result = array_filter($result, function($line) {
+            return !is_null($line) && !empty($line);
+        });
+
+        //parse the items in rows
+        foreach ($result as &$row) {
+            $row = str_getcsv($row, $delimiter);
+        }
+        return $result;
     }
 
 }

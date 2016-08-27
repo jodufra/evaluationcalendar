@@ -55,6 +55,7 @@ $string['config_api_host'] = 'API Host';
 $string['config_api_paths'] = 'API Url Paths';
 $string['config_development_mode'] = 'Development Mode';
 $string['config_schedule_csv_url'] = 'Schedule CSV URL';
+$string['config_schedule_csv_dirty_src'] = 'Schedule CSV Dirty Source';
 $string['config_schedule_csv_delimiter'] = 'Schedule CSV Delimiter';
 $string['config_schedule_csv_encoding'] = 'Schedule CSV Encoding';
 $string['config_defaults_restored'] = 'The configuration values were restored to it\'s defaults';

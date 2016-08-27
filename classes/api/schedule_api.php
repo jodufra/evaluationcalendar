@@ -56,12 +56,15 @@ class schedule_api extends base_api {
      *
      * @param string $encoding  (optional) The encoding of the csv
      * @param string $delimiter (optional) The columns delimiter of the csv
+     * @param bool   $dirty_src (optional) If set to true it will clean the scv thinking the source was from html and that all rows
+     *                          are separated by <br> tag
      * @param array  $arguments (optional) Allows custom arguments be passed to the query string
      * @return schedule[]
      * @throws api_exception on non-2xx response
      */
-    public function get_schedules($encoding = 'ISO-8859-1', $delimiter = ';', $arguments = null) {
-        list($response, $statusCode, $httpHeader) = $this->get_schedules_with_http_info($encoding, $delimiter, $arguments);
+    public function get_schedules($encoding = 'ISO-8859-1', $delimiter = ';', $dirty_src = false, $arguments = null) {
+        list($response, $statusCode, $httpHeader) =
+                $this->get_schedules_with_http_info($encoding, $delimiter, $dirty_src, $arguments);
         return $response;
     }
 
@@ -74,7 +77,7 @@ class schedule_api extends base_api {
      * @return array schedule[], HTTP status code, HTTP response headers (array of strings)
      * @throws api_exception on non-2xx response
      */
-    public function get_schedules_with_http_info($encoding = 'UTF-8', $delimiter = ';', $arguments = null) {
+    public function get_schedules_with_http_info($encoding = 'UTF-8', $delimiter = ';', $dirty_src = false, $arguments = null) {
 
         // parse inputs
         $queryParams = array();
@@ -98,9 +101,11 @@ class schedule_api extends base_api {
             }
 
             // clean the response
-            $response = str_replace("<br>", "[breakpoint]", $response);
-            $response = strip_tags($response);
-            $response = trim(str_replace(array("\n", "\r"), '', $response));
+            if ($dirty_src) {
+                $response = str_replace("<br>", "[breakpoint]", $response);
+                $response = strip_tags($response);
+                $response = trim(str_replace(array("\n", "\r"), '', $response));
+            }
 
             // convert csv text to array
             $headers = array("course_name", "course_scheme", "course_code", "semester", "school_year", "course_field",
