@@ -155,7 +155,7 @@ class evaluation_type extends base_model {
      *
      * @return string[]
      */
-    static function setters(){
+    static function setters() {
         return self::$setters;
     }
 

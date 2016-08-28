@@ -13,18 +13,22 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 
 defined('MOODLE_INTERNAL') || die();
 
-$plugin->component = 'local_evaluationcalendar';    // Full name of the plugin (used for diagnostics).
-$plugin->maturity = MATURITY_ALPHA;    // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->release = 'v0.3-a0';    // Human readable version name that should help to identify each release of the plugin
-$plugin->requires = 2014051200;    // Requires this Moodle version.
-$plugin->version = 2016082200;    // The current module version (Date: YYYYMMDDXX).
+// Full name of the plugin (used for diagnostics).
+$plugin->component = 'local_evaluationcalendar';
+// Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
+$plugin->maturity = MATURITY_BETA;
+// Human readable version name that should help to identify each release of the plugin
+$plugin->release = 'v0.5-b0';
+// Requires this Moodle version.
+$plugin->requires = 2014051200;
+// The current module version (Date: YYYYMMDDXX).
+$plugin->version = 2016082800;

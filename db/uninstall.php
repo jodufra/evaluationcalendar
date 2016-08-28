@@ -13,15 +13,12 @@
 /**
  * [File Documentation]
  *
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-function xmldb_local_evaluationcalendar_upgrade($oldversion) {
-    global $DB;
-    $dbman = $DB->get_manager();
 
-    return true;
-}
+

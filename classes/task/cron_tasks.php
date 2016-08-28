@@ -12,6 +12,7 @@
 
 /**
  * [File Documentation]
+ *
  * @package   local_evaluationcalendar\task
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
@@ -23,18 +24,18 @@ namespace local_evaluationcalendar\task;
 
 /**
  * Class synchronize_evaluation_calendars
+ *
  * @category Class
  * @package  local_evaluationcalendar\task
  */
-class synchronize_task extends \core\task\scheduled_task
-{
+class synchronize_evaluations_task extends \core\task\scheduled_task {
     /**
      * @return string
      * @throws \coding_exception
      */
     public function get_name() {
         // Shown in admin screens
-        return get_string('synchronize', 'local_evaluationcalendar');
+        return get_string('synchronize_last_updated_evaluations', 'local_evaluationcalendar');
     }
 
     /**
@@ -46,5 +47,61 @@ class synchronize_task extends \core\task\scheduled_task
 
         $evaluation_calendar = new \local_evaluationcalendar();
         $evaluation_calendar->synchronize_evaluation_calendars(false);
+    }
+}
+
+/**
+ * Class synchronize_evaluation_calendars
+ *
+ * @category Class
+ * @package  local_evaluationcalendar\task
+ */
+class synchronize_schedules_task extends \core\task\scheduled_task {
+    /**
+     * @return string
+     * @throws \coding_exception
+     */
+    public function get_name() {
+        // Shown in admin screens
+        return get_string('synchronize_schedules', 'local_evaluationcalendar');
+    }
+
+    /**
+     *
+     */
+    public function execute() {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
+
+        $evaluation_calendar = new \local_evaluationcalendar();
+        $evaluation_calendar->synchronize_schedules();
+    }
+}
+
+/**
+ * Class synchronize_evaluation_calendars
+ *
+ * @category Class
+ * @package  local_evaluationcalendar\task
+ */
+class clean_evaluations_task extends \core\task\scheduled_task {
+    /**
+     * @return string
+     * @throws \coding_exception
+     */
+    public function get_name() {
+        // Shown in admin screens
+        return get_string('clean_evaluations', 'local_evaluationcalendar');
+    }
+
+    /**
+     *
+     */
+    public function execute() {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
+
+        $evaluation_calendar = new \local_evaluationcalendar();
+        //$evaluation_calendar->clean_evaluations();
     }
 }

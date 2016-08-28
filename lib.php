@@ -33,7 +33,7 @@ class local_evaluationcalendar_section_form {
     /**
      * @var array
      */
-    private $sections = array('information', 'synchronize', 'settings', 'reports');
+    private $sections = array('synchronize', 'settings', 'reports');
 
     /**
      * @var string
@@ -445,24 +445,23 @@ class local_evaluationcalendar {
                 $log->type = 'Error';
                 $log->message = 'Unknown error while attempting to delete old schedules.';
                 $log->params = [];
-                array_push($report->logs, $log);
+                $report->logs[] = $log;
                 $report->errors++;
-
             }
         } else {
             $log = new stdClass();
             $log->type = 'Log';
             $log->message = 'No schedules to synchronize. The old ones were not deleted.';
             $log->params = [];
-            array_push($report->logs, $log);
+            $report->logs[] = $log;
         }
 
-        $records = [];
+        $records = array();
 
         foreach ($schedules as $schedule) {
             // parse the schedule to get the needed information
             // siges code
-            $sigescode = $schedule->get_course_code() . '' . $schedule->get_subject_code_abbr();
+            $sigescode = trim($schedule->get_course_code()) . '' . trim($schedule->get_subject_code_abbr());
             // semester
             $semester = substr(trim($schedule->get_semester()), 1);
             // subject shift
@@ -473,13 +472,13 @@ class local_evaluationcalendar {
             $subject_shift = substr($subject_shift, 0, $pos);
 
             // get courses and check if any
-            $courses = $this->get_courses_by_partial_idnumber($sigescode, (int) $semester);
+            $courses = $this->get_courses_by_partial_idnumber($sigescode, $semester);
             if (empty($courses)) {
                 $log = new stdClass();
                 $log->type = 'Error';
                 $log->message = 'No courses found with given sigescode and semester.';
                 $log->params = ['sigescode' => $sigescode, 'semester' => $semester];
-                array_push($report->logs, $log);
+                $report->logs[] = $log;
                 $report->errors++;
                 continue;
             }
@@ -488,21 +487,21 @@ class local_evaluationcalendar {
             $groups = [];
             foreach ($courses as $course) {
                 $query = 'courseid = ' . $course->id . ' AND idnumber LIKE \'%' . $subject_shift . '%\'';
-                array_merge($groups, $DB->get_records_select('groups', $query));
+                $groups = array_merge($groups, $DB->get_records_select('groups', $query));
             }
             if (empty($groups)) {
                 $log = new stdClass();
                 $log->type = 'Error';
                 $log->message = 'No groups found with given courseid and idnumber.';
                 $log->params = ['courseid' => $sigescode, 'idnumber' => $subject_shift];
-                array_push($report->logs, $log);
+                $report->logs[] = $log;
                 $report->errors++;
                 continue;
             }
 
             // since we have all we need we can create an evaluationcalendar schedule
             foreach ($groups as $group) {
-                $record = new local_evaluationcalendar_schedule();
+                $record = new stdClass();
                 $record->groupid = $group->id;
                 $record->courseid = $group->courseid;
                 $record->weekday = $schedule->get_week_day();
@@ -529,16 +528,16 @@ class local_evaluationcalendar {
     /**
      * Gets courses which idnumber starts with $siges_code and ends in "_S$semester"
      *
-     * @param $siges_code int The join between the course code and subject code
-     * @param $semester   int (optional) The subject semester
-     * @return array[]
+     * @param $siges_code string The join between the course code and subject code
+     * @param $semester   string (optional) The subject semester
+     * @return array
      */
     private function get_courses_by_partial_idnumber($siges_code, $semester = null) {
 
         global $DB;
-        $query = "idnumber LIKE '$siges_code\_%'";
+        $query = "idnumber LIKE '" . $siges_code . "\_%'";
         if (!is_null($semester)) {
-            $query .= " AND idnumber LIKE '%\_S$semester'";
+            $query .= " AND idnumber LIKE '%\_S" . $semester . "'";
         }
         return $DB->get_records_select('course', $query);
     }
@@ -653,23 +652,23 @@ class local_evaluationcalendar {
         foreach ($api_map->evaluations as $evaluation) {
             // this array will contain the tasks that need to be executed for each evaluation
             $tasks = new stdClass();
-            $tasks->dirty_event_keys = array(); // "array keys" of $ec_events that need cleaning
-            $tasks->dirty_calendar_keys = array(); // "array keys" of $calendar_events that need cleaning
-            $tasks->insert_keys = array(); // "array keys" of $courses that require an evaluation event insert
-            $tasks->update_keys = array(); // "array keys" of $calendar_events that will be updated
+            $tasks->dirty_event_keys = array(); // array keys of $ec_events that need cleaning
+            $tasks->dirty_calendar_ids = array(); // array of ids from calendar events that need cleaning
+            $tasks->insert_references = array(); // array of objects, each containing a courseid and groupid
+            $tasks->update_calendar_ids = array(); // array of ids from calendar events that will be updated
 
             // get calendar
             $calendar = $api_assoc_map->calendars[$evaluation->get_calendar_id()];
 
-            // retrieve all evaluationcalendar events with the given evaluation id
+            // retrieve all evaluation calendar events with the given evaluation id
             $ec_events = local_evaluationcalendar_event::read_from_evaluation_id($evaluation->get_id());
 
             // retrieve the courses which idnumber starts with the siges code and ends with underscore and something
             $courses = $this->get_courses_by_partial_idnumber($evaluation->get_siges_code(), $calendar->get_semester_id());
             if (empty($courses)) {
                 if (!empty($ec_events)) {
-                    // the evaluation siges code was updated and since there are no courses to match the siges code
-                    // they need to be deleted
+                    // If it reaches here means that the evaluation siges code was updated or the courses related to that siges code
+                    // were deleted. So it means that we have to delete the calendar events previously fetched
                     foreach ($ec_events as $ec_event) {
                         $ec_event->delete(true);
                         $report->deleted++;
@@ -679,43 +678,26 @@ class local_evaluationcalendar {
                 $log->type = 'Error';
                 $log->message = 'No courses found with given siges code.';
                 $log->params = ['sigescode' => $evaluation->get_siges_code(), 'evaluationid' => $evaluation->get_id()];
-                array_push($report->logs, $log);
+                $report->logs[] = $log;
                 $report->errors++;
                 continue;
             }
 
-            $assoc_courses = array();
-            array_walk($courses, function($course) use (&$assoc_courses) {
-                $assoc_courses[$course->id] = $course;
-            });
-
-            // retrieves the groups of the retrieved courses
-            if (count($courses) > 1) {
-                $ids = [];
-                foreach ($courses as $course) {
-                    $ids[] = $course->id;
-                }
-                $query = 'courseid IN (' . implode(',', $ids) . ')';
-            } else {
-                $query = 'courseid = ' . $courses[0]->id;
-            }
+            // retrieves the groups of the retrieved courses$ids = [];
+            $query = 'courseid IN (' . implode(',', array_keys($courses)) . ')';
             $groups = $DB->get_records_select('groups', $query);
+            $groups[] = array('id' => '0', 'courseid' => '0', 'name' => '');
 
-            $assoc_groups = array();
-            array_walk($groups, function($group) use (&$assoc_groups) {
-                $assoc_groups[$group->id] = $group;
-            });
-
+            // retrieve schedules related to the courses and to this evaluation
             // get time variables to use later
             $date_start = new DateTime($evaluation->get_date_begin());
             $weekday = $date_start->format("N") + 1;
             $weekday = $weekday > 7 ? 1 : $weekday;
             $timestart = $date_start->format("G:i");
 
-            // retrieve schedules related to the courses and to this evaluation
             $schedules = array();
             foreach ($api_map->schedules as $sch) {
-                if (isset($assoc_groups[$sch->groupid]) && $sch->weekday == $weekday && $sch->timestart == $timestart) {
+                if (isset($groups[$sch->groupid]) && $sch->weekday == $weekday && $sch->timestart == $timestart) {
                     $schedules[] = $sch;
                 }
             }
@@ -725,33 +707,27 @@ class local_evaluationcalendar {
             foreach ($ec_events as $ec_event_key => $ec_event) {
                 try {
                     $calendar_event = calendar_event::load($ec_event->eventid);
-                    array_push($calendar_events, $calendar_event);
+                    $calendar_events[$calendar_event->id] = $calendar_event;
                 } catch (Exception $e) {
-                    array_push($tasks->dirty_event_keys, $ec_event_key);
+                    // means the calendar event was deleted outside this plugin
+                    $tasks->dirty_event_keys[] = $ec_event_key;
                 }
             }
 
-            // checks if the relation between the calendar and the course is still valid
+            // checks if the relation between the calendar and the course and group is still valid
             foreach ($calendar_events as $calendar_event_key => $calendar_event) {
-                $dissociated = true;
-                foreach ($courses as $course) {
-                    if ($calendar_event->courseid == $course->id) {
-                        $dissociated = false;
-                        break;
-                    }
-                }
-                if ($dissociated) {
-                    array_push($tasks->dirty_calendar_keys, $calendar_event_key);
+                if (!isset($courses[$calendar_event->courseid]) || !isset($groups[$calendar_event->groupid])) {
+                    $tasks->dirty_calendar_ids[] = $calendar_event_key;
                 }
             }
 
             // clean the calendar_events
-            foreach ($tasks->dirty_calendar_keys as $key => $calendar_event_key) {
-                // since we are going to delete the calendar event we need to delete the related evaluationcalendar event, if any
+            foreach ($tasks->dirty_calendar_ids as $key => $calendar_event_key) {
+                // since we are going to delete the calendar event we need to delete the related evaluationcalendar event, if any.
                 // so we get the array key to use in the clean evaluationcalendar_events stage
                 foreach ($ec_events as $ec_event_key => $ec_event) {
                     if ($calendar_events[$calendar_event_key]->id == $ec_event->eventid) {
-                        array_push($tasks->dirty_event_keys, $ec_event_key);
+                        $tasks->dirty_event_keys[] = $ec_event_key;
                         break;
                     }
                 }
@@ -770,37 +746,64 @@ class local_evaluationcalendar {
             // check what needs to be inserted or updated
             // we loop through all courses and calendar events looking for a connection, if found, it's an update
             // else it's an insert
-            foreach ($courses as $course_key => $course) {
-                $calendar_key = -1;
-                foreach ($calendar_events as $ca_key => $calendar_event) {
-                    if ($calendar_event->courseid == $course->id) {
-                        $calendar_key = $ca_key;
+            foreach ($schedules as $schedule) {
+                $course_id = $schedule->courseid;
+                $group_id = $schedule->groupid;
+                $calendar_id = 0;
+                foreach ($calendar_events as $ca_id => $calendar_event) {
+                    if ($calendar_event->courseid == $course_id && $calendar_event->groupid == $group_id) {
+                        $calendar_id = $ca_id;
                         break;
                     }
                 }
-                if ($calendar_key >= 0) {
-                    array_push($tasks->update_keys, $calendar_key);
+                if ($calendar_id > 0) {
+                    $tasks->update_calendar_ids[] = $calendar_id;
                 } else {
-                    array_push($tasks->insert_keys, $course_key);
+                    $tasks->insert_references[] = array('courseid' => $course_id, 'groupid' => $group_id);
+                }
+            }
+            foreach ($courses as $course_id => $course) {
+                $previously_inserted = false;
+                foreach ($schedules as $schedule) {
+                    if ($schedule->courseid == $course_id) {
+                        $previously_inserted = true;
+                        break;
+                    }
+                }
+                if ($previously_inserted) {
+                    continue;
+                }
+
+                $calendar_id = 0;
+                foreach ($calendar_events as $ca_id => $calendar_event) {
+                    if ($calendar_event->courseid == $course->id && $calendar_event->groupid == 0) {
+                        $calendar_id = $ca_id;
+                        break;
+                    }
+                }
+                if ($calendar_id > 0) {
+                    $tasks->update_calendar_ids[] = $calendar_id;
+                } else {
+                    $tasks->insert_references[] = array('courseid' => $course_id, 'groupid' => 0);
                 }
             }
 
             // insert
-            foreach ($tasks->insert_keys as $key => $course_key) {
-                $ec_event = new local_evaluationcalendar_event();
+            foreach ($tasks->insert_references as $reference) {
+                $course = (object) $courses[$reference['courseid']];
+                $group = (object) $groups[$reference['groupid']];
+
+                // calendar_event comes first
                 $calendar_event = new calendar_event();
-
-                // set default values
-                $calendar_event->id = 0;
-                $calendar_event->format = 1;
-                $calendar_event->userid = 0;
-                $calendar_event->modulename = 0;
-
-                // course id
-                $calendar_event->courseid = $courses[$course_key]->id;
-
+                $calendar_event->id = 0; // default value
+                $calendar_event->format = 1; // default value
+                $calendar_event->courseid = $course->id;
+                $calendar_event->groupid = $group->id;
+                $calendar_event->userid = 0;  // default value
+                $calendar_event->modulename = 0;  // default value
+                $calendar_event->eventtype = $calendar_event->groupid == 0 ? "course" : "group";
                 // call to the function responsible to edit the calendar
-                $calendar_event = $this->edit_calendar_event($api_map, $evaluation, $calendar_event);
+                $calendar_event = $this->edit_calendar_event($api_map, $evaluation, $calendar_event, $course, $group);
 
                 // now we are ready to insert
                 // first the calendar to get the calendar id
@@ -810,11 +813,12 @@ class local_evaluationcalendar {
                     $log->type = 'Error';
                     $log->message = 'Error inserting calendar event.';
                     $log->params = ['calendar_event' => $calendar_event];
-                    array_push($report->logs, $log);
+                    $report->logs[] = $log;
                     $report->errors++;
                     continue;
                 }
                 // then the evaluationcalendar, since we have all we need
+                $ec_event = new local_evaluationcalendar_event();
                 $ec_event->eventid = $calendar_event->id;
                 $ec_event->evaluationid = $evaluation->get_id();
                 $ec_event->sigescode = $evaluation->get_siges_code();
@@ -824,7 +828,7 @@ class local_evaluationcalendar {
                     $log->type = 'Error';
                     $log->message = 'Error inserting evaluationcalendar event.';
                     $log->params = ['evaluationcalendar_event' => $ec_event];
-                    array_push($report->logs, $log);
+                    $report->logs[] = $log;
                     $report->errors++;
                     continue;
                 }
@@ -832,11 +836,13 @@ class local_evaluationcalendar {
             }
 
             // update
-            foreach ($tasks->update_keys as $calendar_key) {
-                $calendar_event = $calendar_events[$calendar_key];
+            foreach ($tasks->update_calendar_ids as $calendar_id) {
+                $calendar_event = $calendar_events[$calendar_id];
+                $course = $courses[$calendar_event->courseid];
+                $group = $groups[$calendar_event->groupid];
 
                 // call to the function responsible to edit the calendar
-                $calendar_event = $this->edit_calendar_event($api_map, $evaluation, $calendar_event);
+                $calendar_event = $this->edit_calendar_event($api_map, $evaluation, $calendar_event, $course, $group);
 
                 // now we are ready to update
                 // at this stage, only the calendar needs to be updated
@@ -846,13 +852,14 @@ class local_evaluationcalendar {
                     $log->type = 'Error';
                     $log->message = 'Error updating calendar event.';
                     $log->params = ['calendar_event' => $calendar_event];
-                    array_push($report->logs, $log);
+                    $report->logs[] = $log;
                     $report->errors++;
                     continue;
                 }
                 $report->updates++;
             }
         }
+
         // update the last synchronization parameter in the config
         local_evaluationcalendar_config::Instance()->last_synchronization = $date_now;
 
@@ -868,22 +875,33 @@ class local_evaluationcalendar {
      * @param $api_map        object
      * @param $evaluation     \local_evaluationcalendar\models\evaluation
      * @param $calendar_event calendar_event
+     * @param $course         object
+     * @param $group          object
      * @return calendar_event
      */
-    private function edit_calendar_event($api_map, $evaluation, $calendar_event) {
+    private function edit_calendar_event($api_map, $evaluation, $calendar_event, $course, $group) {
 
         // type of evaluation, to add some information in the name and description
         $evaluation_type = \local_evaluationcalendar\models\evaluation_type::select_instance_from_array(
                 $api_map->evaluation_types, 'id', $evaluation->get_evaluation_type_id());
 
         // name
-        $calendar_event->name = (!is_null($evaluation_type) ? $evaluation_type->get_abbreviation() : '');
-        if ($evaluation->get_description() !== '') {
-            $calendar_event->name = $calendar_event->name . ' (' . $evaluation->get_description() . ')';
+        $calendar_event->name = '';
+        if (!is_null($evaluation_type)) {
+            $calendar_event->name .= $evaluation_type->get_abbreviation();
+        }
+        if ($evaluation->get_description() != '') {
+            $calendar_event->name .= ' (' . $evaluation->get_description() . ')';
         }
 
         // description
-        $calendar_event->description = $calendar_event->name;
+        $calendar_event->description = '';
+        if (!is_null($evaluation_type)) {
+            $calendar_event->description .= '<p>' . $evaluation_type->get_description() . '</p>';
+        }
+        if ($evaluation->get_room() != '') {
+            $calendar_event->description .= '<p>' . $evaluation->get_room() . '</p>';
+        }
 
         // time stamps // new DateTimeZone('Europe/Rome') may be needed
         // start
@@ -896,13 +914,6 @@ class local_evaluationcalendar {
         if ($timestamp_end) {
             $calendar_event->timeduration = $timestamp_end - $timestamp_start;
         }
-
-        // group
-        $week_day = $date_start->format("N") + 1;
-        $week_day = $week_day > 7 ? 1 : $week_day;
-        $time_start = $date_start->format("G:i");
-
-        $calendar_event->eventtype = "course";
         return $calendar_event;
     }
 
@@ -1167,7 +1178,7 @@ class local_evaluationcalendar_api_interface {
 }
 
 /**
- * Manage the plugin settings
+ * Manage the plugin config table
  * This class provides the required functionality in order to manage the local_evaluationcalendar_config.
  * The local_evaluationcalendar_config is the container of this plugin's settings
  * It is a singleton that can be accessed through the Instance static method.
@@ -1645,14 +1656,15 @@ class local_evaluationcalendar_event {
 }
 
 /**
- * Class local_evaluationcalendar_schedule
+ * Manage the plugin schedules table
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_schedules.
  *
  * @category Class
  * @property int    $id                 The id within the schedule table
  * @property int    $courseid           The course id
  * @property int    $groupid            The group id
  * @property string $weekday            The number of the week day (1 = Sunday, 7 = Saturday)
- * @property string $timestart          The time the schedule starts in 24h format (ex "09:30")
+ * @property string $timestart          The time the schedule starts in 24h format (ex "15:30")
  */
 class local_evaluationcalendar_schedule {
 
@@ -1691,7 +1703,7 @@ class local_evaluationcalendar_schedule {
     /**
      * Calls moodle db insert_records function to insert a bulk of records
      *
-     * @param $records local_evaluationcalendar_schedule[]
+     * @param $records array
      */
     public static function insert_records($records) {
         global $DB;
@@ -1707,7 +1719,7 @@ class local_evaluationcalendar_schedule {
         global $DB;
         $records = $DB->get_records('evaluationcalendar_schedule');
         foreach ($records as $key => $record) {
-            $record[$key] = new local_evaluationcalendar_event($record);
+            $records[$key] = new local_evaluationcalendar_schedule($record);
         }
         return $records;
     }

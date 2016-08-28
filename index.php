@@ -38,15 +38,12 @@ echo $OUTPUT->header();
 $section_form->display();
 
 switch ($section) {
-    case 'information':
-        echo 'todo';
-        break;
     case 'synchronize':
         $synchronize_form_result = '';
         $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
         if ($data = $synchronize_form->get_data()) {
             $evaluation_calendar = new local_evaluationcalendar(true);
-            switch ($data->synchronize){
+            switch ($data->synchronize) {
                 case 'last_updated_evaluations':
                     $synchronize_form_result = $evaluation_calendar->synchronize_evaluation_calendars();
                     break;

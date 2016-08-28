@@ -28,7 +28,6 @@ $string['evaluation_type'] = 'Evaluation type';
 $string['defaults_restored'] = 'Defaults Restored';
 $string['changes_saved'] = 'Changes were saved';
 $string['error_saving'] = 'Error saving changes';
-$string['is_required'] = '{$a} is required';
 $string['restore_defaults'] = 'Restore Defaults';
 $string['save'] = 'Save';
 $string['submit'] = 'Submit';
@@ -36,13 +35,15 @@ $string['submit'] = 'Submit';
 // Form specific
 // Synchronize form
 $string['synchronize_info'] = '<h3>Manual synchronization of evaluations.</h3>' .
-    '<p>The \'Last Updated\' option synchronizes evaluations updated after the last synchronization, ' .
-    'the \'All\' option synchronizes all evaluations.</p>' .
-    '<p>Both options, only synchronize evaluations from published calendars.</p>' .
-    '<p><small>Be wary that a full synchronization might take a while.</small></p>';
-$string['synchronize_last_updated_evaluations'] = 'Last updated evaluations';
+        '<p>The \'Last Updated\' option synchronizes evaluations updated after the last synchronization, ' .
+        'the \'All\' option synchronizes all evaluations.</p>' .
+        '<p>Both options, only synchronize evaluations from published calendars.</p>' .
+        '<p><small>Be wary that a full synchronization might take a while.</small></p>';
+$string['last_updated_evaluations'] = 'Last updated evaluations';
+$string['synchronize_last_updated_evaluations'] = 'Synchronize Last Updated Evaluations';
 $string['synchronize_all_evaluations'] = 'All evaluations';
-$string['synchronize_schedules'] = 'Schedules';
+$string['schedules'] = 'Schedules';
+$string['synchronize_schedules'] = 'Synchronize Schedules';
 $string['synchronize_nothing_to_synchronize'] = 'Nothing to synchronize';
 $string['synchronize_synchronized'] = 'Synchronized';
 $string['synchronize_synchronized_all'] = 'All Synchronized';

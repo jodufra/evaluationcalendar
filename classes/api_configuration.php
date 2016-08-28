@@ -14,9 +14,9 @@
  * [File Documentation]
  *
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace local_evaluationcalendar;
@@ -29,20 +29,55 @@ defined('MOODLE_INTERNAL') || die();
  * @category Class
  * @package  local_evaluationcalendar
  */
-class api_configuration
-{
+class api_configuration {
     /**
      * Default configuration instance
      */
     private static $_defaultConfiguration = null;
+    /**
+     * Associate array to store API key(s)
+     *
+     * @var string[]
+     */
+    protected $apiKeys = array();
+    /**
+     * Associate array to store API prefix (e.g. Bearer)
+     *
+     * @var string[]
+     */
+    protected $apiKeyPrefixes = array();
+    /**
+     * The default headers
+     *
+     * @var string[]
+     */
+    protected $defaultHeaders = array();
+    /**
+     * The host
+     *
+     * @var string
+     */
+    protected $host = '';
+    /**
+     * Timeout (second) of the HTTP request, by default set to 0, no timeout
+     *
+     * @var string
+     */
+    protected $curlTimeout = 120;
+
+    /**
+     * Constructor
+     */
+    public function __construct() {
+
+    }
 
     /**
      * Gets the default configuration instance
      *
      * @return api_configuration
      */
-    public static function getDefaultConfiguration()
-    {
+    public static function getDefaultConfiguration() {
         if (self::$_defaultConfiguration == null) {
             self::$_defaultConfiguration = new api_configuration();
             self::$_defaultConfiguration->defaultHeaders = \local_evaluationcalendar_config::Instance()->api_authorization_header;
@@ -56,55 +91,10 @@ class api_configuration
      * Sets the detault configuration instance
      *
      * @param api_configuration $config An instance of the Configuration Object
-     *
      * @return void
      */
-    public static function setDefaultConfiguration(api_configuration $config)
-    {
+    public static function setDefaultConfiguration(api_configuration $config) {
         self::$_defaultConfiguration = $config;
-    }
-
-    /**
-     * Associate array to store API key(s)
-     *
-     * @var string[]
-     */
-    protected $apiKeys = array();
-
-    /**
-     * Associate array to store API prefix (e.g. Bearer)
-     *
-     * @var string[]
-     */
-    protected $apiKeyPrefixes = array();
-
-    /**
-     * The default headers
-     *
-     * @var string[]
-     */
-    protected $defaultHeaders = array();
-
-    /**
-     * The host
-     *
-     * @var string
-     */
-    protected $host = '';
-
-    /**
-     * Timeout (second) of the HTTP request, by default set to 0, no timeout
-     *
-     * @var string
-     */
-    protected $curlTimeout = 120;
-
-    /**
-     * Constructor
-     */
-    public function __construct()
-    {
-
     }
 
     /**
@@ -112,11 +102,9 @@ class api_configuration
      *
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
      * @param string $key              API key or token
-     *
      * @return api_configuration
      */
-    public function setApiKey($apiKeyIdentifier, $key)
-    {
+    public function setApiKey($apiKeyIdentifier, $key) {
         $this->apiKeys[$apiKeyIdentifier] = $key;
         return $this;
     }
@@ -125,11 +113,9 @@ class api_configuration
      * Gets API key
      *
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     *
      * @return string API key or token
      */
-    public function getApiKey($apiKeyIdentifier)
-    {
+    public function getApiKey($apiKeyIdentifier) {
         return isset($this->apiKeys[$apiKeyIdentifier]) ? $this->apiKeys[$apiKeyIdentifier] : null;
     }
 
@@ -138,11 +124,9 @@ class api_configuration
      *
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
      * @param string $prefix           API key prefix, e.g. Bearer
-     *
      * @return api_configuration
      */
-    public function setApiKeyPrefix($apiKeyIdentifier, $prefix)
-    {
+    public function setApiKeyPrefix($apiKeyIdentifier, $prefix) {
         $this->apiKeyPrefixes[$apiKeyIdentifier] = $prefix;
         return $this;
     }
@@ -151,11 +135,9 @@ class api_configuration
      * Gets API key prefix
      *
      * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     *
      * @return string
      */
-    public function getApiKeyPrefix($apiKeyIdentifier)
-    {
+    public function getApiKeyPrefix($apiKeyIdentifier) {
         return isset($this->apiKeyPrefixes[$apiKeyIdentifier]) ? $this->apiKeyPrefixes[$apiKeyIdentifier] : null;
     }
 
@@ -164,16 +146,14 @@ class api_configuration
      *
      * @param string $headerName  header name (e.g. Token)
      * @param string $headerValue header value (e.g. 1z8wp3)
-     *
      * @return api_configuration
      */
-    public function addDefaultHeader($headerName, $headerValue)
-    {
+    public function addDefaultHeader($headerName, $headerValue) {
         if (!is_string($headerName)) {
             throw new \InvalidArgumentException('Header name must be a string.');
         }
 
-        $this->defaultHeaders[$headerName] =  $headerValue;
+        $this->defaultHeaders[$headerName] = $headerValue;
         return $this;
     }
 
@@ -182,8 +162,7 @@ class api_configuration
      *
      * @return array An array of default header(s)
      */
-    public function getDefaultHeaders()
-    {
+    public function getDefaultHeaders() {
         return $this->defaultHeaders;
     }
 
@@ -191,25 +170,10 @@ class api_configuration
      * Deletes a default header
      *
      * @param string $headerName the header to delete
-     *
      * @return api_configuration
      */
-    public function deleteDefaultHeader($headerName)
-    {
+    public function deleteDefaultHeader($headerName) {
         unset($this->defaultHeaders[$headerName]);
-    }
-
-    /**
-     * Sets the host
-     *
-     * @param string $host Host
-     *
-     * @return api_configuration
-     */
-    public function setHost($host)
-    {
-        $this->host = $host;
-        return $this;
     }
 
     /**
@@ -217,25 +181,18 @@ class api_configuration
      *
      * @return string Host
      */
-    public function getHost()
-    {
+    public function getHost() {
         return $this->host;
     }
 
     /**
-     * Sets the HTTP timeout value
+     * Sets the host
      *
-     * @param integer $seconds Number of seconds before timing out [set to 0 for no timeout]
-     *
+     * @param string $host Host
      * @return api_configuration
      */
-    public function setCurlTimeout($seconds)
-    {
-        if (!is_numeric($seconds) || $seconds < 0) {
-            throw new \InvalidArgumentException('Timeout value must be numeric and a non-negative number.');
-        }
-
-        $this->curlTimeout = $seconds;
+    public function setHost($host) {
+        $this->host = $host;
         return $this;
     }
 
@@ -244,8 +201,22 @@ class api_configuration
      *
      * @return string HTTP timeout value
      */
-    public function getCurlTimeout()
-    {
+    public function getCurlTimeout() {
         return $this->curlTimeout;
+    }
+
+    /**
+     * Sets the HTTP timeout value
+     *
+     * @param integer $seconds Number of seconds before timing out [set to 0 for no timeout]
+     * @return api_configuration
+     */
+    public function setCurlTimeout($seconds) {
+        if (!is_numeric($seconds) || $seconds < 0) {
+            throw new \InvalidArgumentException('Timeout value must be numeric and a non-negative number.');
+        }
+
+        $this->curlTimeout = $seconds;
+        return $this;
     }
 }

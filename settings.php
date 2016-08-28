@@ -13,18 +13,33 @@
 /**
  * [File Documentation]
  *
- * @package local_evaluationcalendar
+ * @package   local_evaluationcalendar
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
- * @author Duarte Mateus <2120189@my.ipleiria.pt>
- * @author Joel Francisco <2121000@my.ipleiria.pt>
- * @license http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ * @author    Duarte Mateus <2120189@my.ipleiria.pt>
+ * @author    Joel Francisco <2121000@my.ipleiria.pt>
+ * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-
 
 defined('MOODLE_INTERNAL') || die;
 
 if ($hassiteconfig) {
     global $CFG;
     $ADMIN->add('development', new admin_externalpage('local_evaluationcalendar',
-        get_string('pluginname', 'local_evaluationcalendar'), "$CFG->wwwroot/local/evaluationcalendar/index.php"));
+            get_string('synchronize', 'local_evaluationcalendar'),
+            "$CFG->wwwroot/local/evaluationcalendar/index.php"));
+
+    /*
+    //$ADMIN->add('root', new admin_category('evaluationcalendar', get_string('pluginname', 'local_evaluationcalendar')));
+
+    $ADMIN->add('evaluationcalendar', new admin_externalpage('local_evaluationcalendar',
+            get_string('synchronize', 'local_evaluationcalendar'),
+            "$CFG->wwwroot/local/evaluationcalendar/index.php?section=synchronize"));
+
+    $ADMIN->add('evaluationcalendar', new admin_externalpage('local_evaluationcalendar',
+            get_string('settings', 'local_evaluationcalendar'),
+            "$CFG->wwwroot/local/evaluationcalendar/index.php?section=settings"));
+
+    $ADMIN->add('evaluationcalendar', new admin_externalpage('local_evaluationcalendar',
+            get_string('reports', 'local_evaluationcalendar'),
+            "$CFG->wwwroot/local/evaluationcalendar/index.php?section=reports"));*/
 }

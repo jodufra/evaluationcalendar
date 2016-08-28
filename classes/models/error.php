@@ -83,7 +83,6 @@ class error extends base_model {
      */
     protected $message;
 
-
     /**
      * Constructor
      *
