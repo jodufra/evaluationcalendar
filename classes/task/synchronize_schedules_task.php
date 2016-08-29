@@ -13,22 +13,39 @@
 /**
  * [File Documentation]
  *
- * @package   local_evaluationcalendar
+ * @package   local_evaluationcalendar\task
  * @copyright 2016 Instituto Politécnico de Leiria <http://www.ipleiria.pt>
  * @author    Duarte Mateus <2120189@my.ipleiria.pt>
  * @author    Joel Francisco <2121000@my.ipleiria.pt>
  * @license   http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
-defined('MOODLE_INTERNAL') || die();
+namespace local_evaluationcalendar\task;
 
 /**
- * This is called at the beginning of the uninstallation process to give the plugin
- * a chance to clean-up the created events
+ * Class synchronize_evaluation_calendars
  *
- * @return bool true if success
+ * @category Class
+ * @package  local_evaluationcalendar\task
  */
-function local_evaluationcalendar_uninstall() {
+class synchronize_schedules_task extends \core\task\scheduled_task {
+    /**
+     * @return string
+     * @throws \coding_exception
+     */
+    public function get_name() {
+        // Shown in admin screens
+        return get_string('synchronize_schedules', 'local_evaluationcalendar');
+    }
 
-    return local_evaluationcalendar_event::delete_all_events();
+    /**
+     *
+     */
+    public function execute() {
+        global $CFG;
+        require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
+
+        $evaluation_calendar = new \local_evaluationcalendar();
+        $evaluation_calendar->synchronize_schedules();
+    }
 }

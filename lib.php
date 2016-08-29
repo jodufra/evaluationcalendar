@@ -99,67 +99,6 @@ class local_evaluationcalendar_section_form {
  * @category Class
  */
 class local_evaluationcalendar_synchronize_form extends moodleform {
-    /*
-    if ($report->inserts || $report->cleaned || $report->updates || $report->errors || $report->deleted) {
-        if ($update_all) {
-            $html = "<p style='color: black'>" . get_string('synchronize_synchronized_all', 'local_evaluationcalendar') .
-                    " ( ";
-        } else {
-            $html = "<p style='color: black'>" . get_string('synchronize_synchronized', 'local_evaluationcalendar') . " ( ";
-        }
-        $html .= "<b style='color:#4CAF50'>" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts .
-                "</b> ";
-        $html .= "<b style='color:#FF9800'>( " . get_string('cleaned', 'local_evaluationcalendar') . ": " .
-                $report->cleaned . " )</b>, ";
-        $html .= "<b style='color:#2196F3'>" . get_string('updates', 'local_evaluationcalendar') . ": " . $report->updates .
-                "</b>, ";
-        $html .= "<b style='color:#F44336'>" . get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors .
-                "</b> ";
-        $html .= "<b style='color:#F44336'>( " . get_string('deleted', 'local_evaluationcalendar') . ": " .
-                $report->deleted . " )</b> ";
-        $html .= " )</p>";
-        foreach ($report->logs as $log) {
-            $html .= "<p>[" . $log->type . "] " . $log->message;
-            foreach ($log->params as $key => $value) {
-                $html .= " [" . $key . " => " . $value . "]";
-            }
-            $html .= "</p>";
-        }
-    } else {
-        $html = "<p>" . get_string('synchronize_nothing_to_synchronize', 'local_evaluationcalendar') . "</p>";
-    }
-     */
-    /**
-     * Overridden method to use if you need to setup the form depending on current
-     * values. This method is called after definition(), data submission and set_data().
-     * All form setup that is dependent on form values should go in here.
-     *
-     * @param $report object (Optional) Synchronization report object to show the result accordingly
-     */
-    public function definition_after_data($report = null) {
-        parent::definition_after_data();
-        $mform = $this->_form;
-        if ($mform->isSubmitted() && !is_null($report)) {
-            if ($report->inserts || $report->cleaned || $report->updates || $report->errors || $report->deleted) {
-                if (strcmp($report->task, 'synchronize_all')) {
-                    $result = "<p>" . get_string('synchronize_synchronized_all', 'local_evaluationcalendar') . " ( ";
-                } else {
-                    $result = "<p>" . get_string('synchronize_synchronized', 'local_evaluationcalendar') . " ( ";
-                }
-                $result .= "<b>" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts . "</b> ";
-                $result .= "<b>( " . get_string('cleaned', 'local_evaluationcalendar') . ": " . $report->cleaned . " )</b>, ";
-                $result .= "<b>" . get_string('updates', 'local_evaluationcalendar') . ": " . $report->updates . "</b>, ";
-                $result .= "<b>" . get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . "</b> ";
-                $result .= "<b>( " . get_string('deleted', 'local_evaluationcalendar') . ": " . $report->deleted . " )</b> ";
-                $result .= " )</p>";
-            } else {
-                $result = '<p>' . get_string('synchronize_nothing_to_synchronize', 'local_evaluationcalendar') . '</p>';
-            }
-
-            $elem = $mform->getElement('result');
-            $elem->setValue($result);
-        }
-    }
 
     /**
      * @throws coding_exception
@@ -170,21 +109,19 @@ class local_evaluationcalendar_synchronize_form extends moodleform {
         // information
         $mform->addElement('static', '', '', get_string('synchronize_info', 'local_evaluationcalendar'));
 
-        // container to show result
-        $mform->addElement('static', 'result', '', '');
-
         // radio buttons
         $requestTypes = array();
-        $string = get_string('synchronize_schedules', 'local_evaluationcalendar');
+        $string = get_string('schedules', 'local_evaluationcalendar');
         $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'schedules');
-        $string = get_string('synchronize_last_updated_evaluations', 'local_evaluationcalendar');
+        $string = get_string('last_updated_evaluations', 'local_evaluationcalendar');
         $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'last_updated_evaluations');
-        $string = get_string('synchronize_all_evaluations', 'local_evaluationcalendar');
+        $string = get_string('all_evaluations', 'local_evaluationcalendar');
         $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'all_evaluations');
         $string = get_string('synchronize', 'local_evaluationcalendar');
         $mform->addGroup($requestTypes, 'g_synchronize', $string, null, false);
+        $mform->addHelpButton('g_synchronize', 'synchronize', 'local_evaluationcalendar');
+        $mform->addRule('g_synchronize', get_string('error'), 'required');
         $mform->setDefault('synchronize', 'schedules');
-
         // submit button
         $string = get_string('submit', 'local_evaluationcalendar');
         $mform->addElement('submit', 'submitbutton', $string);
@@ -218,8 +155,6 @@ class local_evaluationcalendar_config_form extends moodleform {
                     $elem->setValue($value);
                 }
             }
-            $elem = $mform->getElement('result');
-            $elem->setValue($result);
         }
     }
 
@@ -234,71 +169,104 @@ class local_evaluationcalendar_config_form extends moodleform {
         $big = array('size' => '96');
 
         // static info
-        $string = get_string('config_info', 'local_evaluationcalendar');
-        $mform->addElement('static', '', '', $string);
-
-        // container to show result
-        $mform->addElement('static', 'result', '', '');
+        $name = get_string('config_info', 'local_evaluationcalendar');
+        $mform->addElement('static', '', '', $name);
 
         // api auth header key
-        $string = get_string('config_api_authorization_header_key', 'local_evaluationcalendar');
-        $mform->addElement('text', 'api_authorization_header_key', $string, $small);
-        $mform->setType('api_authorization_header_key', PARAM_NOTAGS);
+        $key = 'api_authorization_header_key';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('text', $key, $name, $small);
+        $mform->setType($key, PARAM_NOTAGS);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
         // api auth header value
-        $string = get_string('config_api_authorization_header_value', 'local_evaluationcalendar');
-        $mform->addElement('text', 'api_authorization_header_value', $string, $big);
-        $mform->setType('api_authorization_header_value', PARAM_NOTAGS);
+        $key = 'api_authorization_header_value';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('text', $key, $name, $big);
+        $mform->setType($key, PARAM_NOTAGS);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // api host
-        $string = get_string('config_api_host', 'local_evaluationcalendar');
-        $mform->addElement('text', 'api_host', $string, $big);
-        $mform->setType('api_host', PARAM_NOTAGS);
+        $key = 'api_host';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('text', $key, $name, $big);
+        $mform->setType($key, PARAM_NOTAGS);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // api paths
-        $string = get_string('config_api_paths', 'local_evaluationcalendar');
-        $mform->addElement('static', '', '', $string);
+        $name = get_string('api_paths', 'local_evaluationcalendar');
+        $mform->addElement('static', '', '', $name);
         foreach (local_evaluationcalendar_config::Instance()->api_paths as $key => $value) {
-            $string = get_string($key, 'local_evaluationcalendar');
-            $mform->addElement('text', 'path_' . $key, $string, $normal);
+            $name = get_string($key, 'local_evaluationcalendar');
+            $mform->addElement('text', 'path_' . $key, $name, $normal);
             $mform->setType('path_' . $key, PARAM_NOTAGS);
+            $mform->addHelpButton('path_' . $key, $key, 'local_evaluationcalendar');
+            $mform->addRule('path_' . $key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
         }
 
         // separator
         $mform->addElement('static', '', '', '');
 
         // schedule csv url
-        $string = get_string('config_schedule_csv_url', 'local_evaluationcalendar');
-        $mform->addElement('text', 'schedule_csv_url', $string, $big);
-        $mform->setType('schedule_csv_url', PARAM_NOTAGS);
+        $key = 'schedule_csv_url';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('text', $key, $name, $big);
+        $mform->setType($key, PARAM_NOTAGS);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // schedule csv dirty src
-        $string = get_string('config_schedule_csv_dirty_src', 'local_evaluationcalendar');
-        $mform->addElement('advcheckbox', 'schedule_csv_dirty_src', $string);
-        $mform->setType('schedule_csv_dirty_src', PARAM_BOOL);
+        $key = 'schedule_csv_dirty_src';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('advcheckbox', $key, $name);
+        $mform->setType($key, PARAM_BOOL);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // schedule csv delimiter
+        $key = 'schedule_csv_delimiter';
         $delimiters = csv_import_reader::get_delimiter_list();
-        $string = get_string('config_schedule_csv_delimiter', 'local_evaluationcalendar');
-        $mform->addElement('select', 'schedule_csv_delimiter', $string, $delimiters);
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('select', $key, $name, $delimiters);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // schedule csv encoding
+        $key = 'schedule_csv_encoding';
         $encodings = core_text::get_encodings();
-        $string = get_string('config_schedule_csv_encoding', 'local_evaluationcalendar');
-        $mform->addElement('select', 'schedule_csv_encoding', $string, $encodings);
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('select', $key, $name, $encodings);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
+
+        // separator
+        $mform->addElement('static', '', '', '');
+
+        // api auth header key
+        $key = 'school_year';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('text', $key, $name, $small);
+        $mform->setType($key, PARAM_NOTAGS);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
+        $mform->addRule($key, get_string('is_required', 'local_evaluationcalendar', $name), 'required');
 
         // separator
         $mform->addElement('static', '', '', '');
 
         // development mode
-        $string = get_string('config_development_mode', 'local_evaluationcalendar');
-        $mform->addElement('advcheckbox', 'development_mode', $string);
-        $mform->setType('development_mode', PARAM_BOOL);
+        $key = 'development_mode';
+        $name = get_string($key, 'local_evaluationcalendar');
+        $mform->addElement('advcheckbox', $key, $name);
+        $mform->setType($key, PARAM_BOOL);
+        $mform->addHelpButton($key, $key, 'local_evaluationcalendar');
 
         // buttons
-        $string = get_string('restore_defaults', 'local_evaluationcalendar');
-        $mform->addElement('submit', 'restore_defaults', $string);
-        $string = get_string('save', 'local_evaluationcalendar');
-        $mform->addElement('submit', 'submitbutton', $string);
+        $name = get_string('restore_defaults', 'local_evaluationcalendar');
+        $mform->addElement('submit', 'restore_defaults', $name);
+        $name = get_string('save', 'local_evaluationcalendar');
+        $mform->addElement('submit', 'submitbutton', $name);
     }
 }
 
@@ -420,10 +388,14 @@ class local_evaluationcalendar {
     }
 
     /**
-     * @return object
+     * @return object|string
      */
     function synchronize_schedules() {
         global $DB;
+
+        // set school year
+        $school_year = local_evaluationcalendar_config::Instance()->school_year;
+        $school_year = str_replace('/', '', $school_year);
 
         // instantiate the report object
         $report = new stdClass();
@@ -438,7 +410,6 @@ class local_evaluationcalendar {
         $report->logs = [];
 
         $schedules = $this->api_interface->get_schedules();
-
         if (count($schedules)) {
             if (!local_evaluationcalendar_schedule::delete_all()) {
                 $log = new stdClass();
@@ -457,8 +428,16 @@ class local_evaluationcalendar {
         }
 
         $records = array();
-
         foreach ($schedules as $schedule) {
+            // check if schedule belongs to the correct school year
+            if(strcmp($school_year, $schedule->get_school_year())){$log = new stdClass();
+                $log->type = 'Error';
+                $log->message = 'Wrong school year.';
+                $log->params = ['school_year'=> $school_year,'schedule_school_year'=> $schedule->get_school_year()];
+                $report->logs[] = $log;
+                continue;
+            }
+
             // parse the schedule to get the needed information
             // siges code
             $sigescode = trim($schedule->get_course_code()) . '' . trim($schedule->get_subject_code_abbr());
@@ -522,6 +501,20 @@ class local_evaluationcalendar {
         $report->finished = true;
         /** TODO save report */
 
+        if ($this->render_html) {
+            if ($report->inserts || $report->errors) {
+                $result = "<div class='alert alert-success'>";
+                $result .= "<b>" . get_string('synchronized_' . $report->task, 'local_evaluationcalendar') . "</b>";
+                $result .= " (" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts . ", ";
+                $result .= get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . ")";
+                $result .= "</div>";
+            } else {
+                $result = '<div class=\'alert alert-success\'>';
+                $result .= '<b>' . get_string('synchronized_nothing', 'local_evaluationcalendar') . '</b>';
+                $result .= '</div>';
+            }
+            return $result;
+        }
         return $report;
     }
 
@@ -545,7 +538,7 @@ class local_evaluationcalendar {
     /**
      * @param bool $update_all Set to true to synchronize all published evaluations, else it will only synchronize
      *                         the evaluations updated since the last synchronization.
-     * @return stdClass|string
+     * @return object|string
      */
     function synchronize_evaluation_calendars($update_all = false) {
         global $DB;
@@ -554,6 +547,9 @@ class local_evaluationcalendar {
         $date_epoch = new DateTime('1970-01-01 00:00:01');
         $date_last_synchronization = $update_all ? $date_epoch : local_evaluationcalendar_config::Instance()->last_synchronization;
         $date_now = new DateTime();
+
+        // set school year
+        $school_year = local_evaluationcalendar_config::Instance()->school_year;
 
         // instantiate the report object
         $report = new stdClass();
@@ -573,7 +569,7 @@ class local_evaluationcalendar {
         // there are two big groups of data we need to retrieve, the first is the recent published calendars and all its
         // evaluations, the other is the recent updated evaluations from published calendars
         // first we get all published calendars
-        $api_map->calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now);
+        $api_map->calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now, $school_year);
 
         // then we filter the recent from the old published calendars here,
         // since it's way faster than doing a http request for each
@@ -683,10 +679,10 @@ class local_evaluationcalendar {
                 continue;
             }
 
-            // retrieves the groups of the retrieved courses$ids = [];
+            // retrieves the groups of the retrieved courses
             $query = 'courseid IN (' . implode(',', array_keys($courses)) . ')';
             $groups = $DB->get_records_select('groups', $query);
-            $groups[] = array('id' => '0', 'courseid' => '0', 'name' => '');
+            $groups[0] = array('id' => '0', 'courseid' => '0', 'name' => '');
 
             // retrieve schedules related to the courses and to this evaluation
             // get time variables to use later
@@ -757,7 +753,7 @@ class local_evaluationcalendar {
                     }
                 }
                 if ($calendar_id > 0) {
-                    $tasks->update_calendar_ids[] = $calendar_id;
+                    $tasks->update_calendar_ids[$calendar_id] = $calendar_id;
                 } else {
                     $tasks->insert_references[] = array('courseid' => $course_id, 'groupid' => $group_id);
                 }
@@ -782,7 +778,7 @@ class local_evaluationcalendar {
                     }
                 }
                 if ($calendar_id > 0) {
-                    $tasks->update_calendar_ids[] = $calendar_id;
+                    $tasks->update_calendar_ids[$calendar_id] = $calendar_id;
                 } else {
                     $tasks->insert_references[] = array('courseid' => $course_id, 'groupid' => 0);
                 }
@@ -851,7 +847,7 @@ class local_evaluationcalendar {
                     $log = new stdClass();
                     $log->type = 'Error';
                     $log->message = 'Error updating calendar event.';
-                    $log->params = ['calendar_event' => $calendar_event];
+                    $log->params = array('calendar_id' => $calendar_id);
                     $report->logs[] = $log;
                     $report->errors++;
                     continue;
@@ -868,6 +864,23 @@ class local_evaluationcalendar {
         $report->finished = true;
         /** TODO save report */
 
+        if ($this->render_html) {
+            if ($report->inserts || $report->cleaned || $report->updates || $report->errors || $report->deleted) {
+                $result = "<div class='alert alert-success'>";
+                $result .= "<b>" . get_string('synchronized_' . $report->task, 'local_evaluationcalendar') . "</b>";
+                $result .= " (" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts;
+                $result .= " (" . get_string('cleaned', 'local_evaluationcalendar') . ": " . $report->cleaned . "), ";
+                $result .= get_string('updates', 'local_evaluationcalendar') . ": " . $report->updates . ", ";
+                $result .= get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors;
+                $result .= " (" . get_string('deleted', 'local_evaluationcalendar') . ": " . $report->deleted . "))";
+                $result .= "</div>";
+            } else {
+                $result = '<div class=\'alert alert-success\'>';
+                $result .= '<b>' . get_string('synchronized_nothing', 'local_evaluationcalendar') . '</b>';
+                $result .= '</div>';
+            }
+            return $result;
+        }
         return $report;
     }
 
@@ -959,6 +972,9 @@ class local_evaluationcalendar {
         // development mode
         $instance->development_mode = $config->development_mode;
 
+        // development mode
+        $instance->school_year = $config->school_year;
+
         $message = get_string('config_changes_saved', 'local_evaluationcalendar');
         return $this->render_html ? ('<b style="color:#4CAF50">' . $message . '</b>') : $message;
     }
@@ -972,7 +988,7 @@ class local_evaluationcalendar {
     function restore_config_to_defaults() {
         local_evaluationcalendar_config::Instance()->restore_defaults();
         if ($this->render_html) {
-            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_evaluationcalendar') . '</b> ';
+            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_evaluationcalendar') . '</b>';
         }
         return true;
     }
@@ -1035,22 +1051,23 @@ class local_evaluationcalendar_api_interface {
     }
 
     /**
-     * Gets published calendars that were updated between the given dates.
-     * When any date parameters are omitted, it will retrieve all published calendars
+     * Gets published calendars from the give school year that were updated between the given dates
      *
      * @param DateTime $datetime_start Sets the lowest value of the calendar update date time filter
      * @param DateTime $datetime_end   Sets the highest value of the calendar update date time filter
+     * @param string   $school_year    Sets school year filter
      * @param string   $q              (optional) Allows to make queries over several attributes
      * @param string   $fields         (optional) Allows a selection of the attributes
      * @param string   $sort           (optional) Allows sorting the results by attribute
      * @return \local_evaluationcalendar\models\calendar[]
      */
-    function get_calendars_published_updated($datetime_start, $datetime_end, $q = null, $fields = null, $sort = null) {
+    function get_calendars_published_updated($datetime_start, $datetime_end, $school_year, $q = null, $fields = null, $sort = null) {
         $arguments = array();
         if (!local_evaluationcalendar_config::Instance()->development_mode) {
             $arguments['estado'] = 'PUBLICADO';
         }
         $arguments['updatedAt'] = $this->create_date_time_range_filter($datetime_start, $datetime_end, 'updatedAt');
+        $arguments['anoLetivo'] = $school_year;
         return $this->get_calendars($q, $fields, $sort, $arguments);
     }
 
@@ -1192,6 +1209,7 @@ class local_evaluationcalendar_api_interface {
  * @property string   $schedule_csv_delimiter
  * @property string   $schedule_csv_encoding
  * @property DateTime $last_synchronization
+ * @property string   $school_year
  * @property bool     $development_mode
  */
 class local_evaluationcalendar_config {
@@ -1223,6 +1241,9 @@ class local_evaluationcalendar_config {
     /** @var string Default Schedule csv encoding */
     private static $DEFAULT_SCHEDULE_CSV_ENCODING = 'ISO-8859-1';
 
+    /** @var string Default school year */
+    private static $DEFAULT_SCHOOL_YEAR = '2015/16';
+
     /** @var array An object containing the event properties can be accessed via the __get/set methods */
     private $properties = null;
 
@@ -1239,6 +1260,7 @@ class local_evaluationcalendar_config {
         $this->properties->schedule_csv_dirty_src = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DIRTY_SRC;
         $this->properties->schedule_csv_delimiter = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DELIMITER;
         $this->properties->schedule_csv_encoding = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_ENCODING;
+        $this->properties->school_year = local_evaluationcalendar_config::$DEFAULT_SCHOOL_YEAR;
         // doesn't have default
         $this->properties->last_synchronization = new DateTime('1970-01-01 00:00:01');
         $this->properties->development_mode = false;
@@ -1360,6 +1382,7 @@ class local_evaluationcalendar_config {
         $this->schedule_csv_dirty_src = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DIRTY_SRC;
         $this->schedule_csv_delimiter = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_DELIMITER;
         $this->schedule_csv_encoding = local_evaluationcalendar_config::$DEFAULT_SCHEDULE_CSV_ENCODING;
+        $this->school_year = local_evaluationcalendar_config::$DEFAULT_SCHOOL_YEAR;
     }
 
     /**
@@ -1377,9 +1400,7 @@ class local_evaluationcalendar_config {
             $result['path_' . $key] = $value;
         }
         $result['schedule_csv_url'] = $this->properties->schedule_csv_url;
-
         $result['schedule_csv_dirty_src'] = $this->properties->schedule_csv_dirty_src;
-
         $delimiters = csv_import_reader::get_delimiter_list();
         foreach ($delimiters as $key => $value) {
             if ($this->properties->schedule_csv_delimiter == $value) {
@@ -1387,7 +1408,6 @@ class local_evaluationcalendar_config {
                 break;
             }
         }
-
         $encodings = core_text::get_encodings();
         foreach ($encodings as $key => $value) {
             if ($this->properties->schedule_csv_encoding == $value) {
@@ -1395,7 +1415,7 @@ class local_evaluationcalendar_config {
                 break;
             }
         }
-
+        $result['school_year'] = $this->properties->school_year;
         $result['development_mode'] = $this->properties->development_mode;
         return $result;
     }
@@ -1555,7 +1575,7 @@ class local_evaluationcalendar_event {
     }
 
     /**
-     * Deletes all events inserted during development stage.
+     * Deletes events inserted during development stage.
      * Also deletes the related calendar events
      *
      * @see self::delete()
@@ -1565,6 +1585,30 @@ class local_evaluationcalendar_event {
         global $DB;
 
         $records = $DB->get_records('evaluationcalendar_event', array('development' => 1), null, 'eventid');
+        if (count($records) == 0) {
+            return true;
+        }
+
+        $DB->delete_records('evaluationcalendar_event', array('development' => 1));
+
+        foreach ($records as $record) {
+            $calendar_event = calendar_event::load((int) $record->eventid);
+            $calendar_event->delete();
+        }
+        return true;
+    }
+
+    /**
+     * Deletes all events.
+     * Also deletes the related calendar events
+     *
+     * @see self::delete()
+     * @return bool succession of deleting event
+     */
+    public static function delete_all_events() {
+        global $DB;
+
+        $records = $DB->get_records('evaluationcalendar_event', null, '', 'eventid');
         if (count($records) == 0) {
             return true;
         }

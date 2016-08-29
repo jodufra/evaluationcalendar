@@ -25,11 +25,11 @@ defined('MOODLE_INTERNAL') || die;
 if ($hassiteconfig) {
     global $CFG;
     $ADMIN->add('development', new admin_externalpage('local_evaluationcalendar',
-            get_string('synchronize', 'local_evaluationcalendar'),
+            get_string('pluginname', 'local_evaluationcalendar'),
             "$CFG->wwwroot/local/evaluationcalendar/index.php"));
 
     /*
-    //$ADMIN->add('root', new admin_category('evaluationcalendar', get_string('pluginname', 'local_evaluationcalendar')));
+    $ADMIN->add('root', new admin_category('evaluationcalendar', get_string('pluginname', 'local_evaluationcalendar')));
 
     $ADMIN->add('evaluationcalendar', new admin_externalpage('local_evaluationcalendar',
             get_string('synchronize', 'local_evaluationcalendar'),
@@ -41,5 +41,6 @@ if ($hassiteconfig) {
 
     $ADMIN->add('evaluationcalendar', new admin_externalpage('local_evaluationcalendar',
             get_string('reports', 'local_evaluationcalendar'),
-            "$CFG->wwwroot/local/evaluationcalendar/index.php?section=reports"));*/
+            "$CFG->wwwroot/local/evaluationcalendar/index.php?section=reports"));
+    */
 }

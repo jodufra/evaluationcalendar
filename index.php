@@ -39,7 +39,6 @@ $section_form->display();
 
 switch ($section) {
     case 'synchronize':
-        $synchronize_form_result = '';
         $synchronize_form = new local_evaluationcalendar_synchronize_form($moodle_url);
         if ($data = $synchronize_form->get_data()) {
             $evaluation_calendar = new local_evaluationcalendar(true);
@@ -53,9 +52,12 @@ switch ($section) {
                 case 'schedules':
                     $synchronize_form_result = $evaluation_calendar->synchronize_schedules();
                     break;
+                default:
+                    $synchronize_form_result = '';
+                    break;
             }
             // To show the report
-            $synchronize_form->definition_after_data($synchronize_form_result);
+            echo $synchronize_form_result;
         }
         $synchronize_form->display();
         break;

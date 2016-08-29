@@ -35,15 +35,6 @@ use local_evaluationcalendar\api_object_serializer;
 class base_api {
 
     /**
-     * @var array container of media types for easy access
-     */
-    protected static $MEDIA_TYPES = array(
-            'json' => 'application/json',
-            'csv' => 'text/csv',
-            'html' => 'text/html'
-    );
-
-    /**
      * Class path of the returning model of the api
      *
      * @var string
@@ -209,7 +200,7 @@ class base_api {
         //parse the rows
         $result = explode($row_delimiter, $input);
 
-        // remove empty lines, just in case
+        // remove empty lines
         $result = array_filter($result, function($line) {
             return !is_null($line) && !empty($line);
         });
