@@ -25,16 +25,21 @@ $string['synchronize_help'] = '<ul>' .
         '</ul>' .
         '<p>The options <b>Last updated evaluations</b> and <b>All evaluations</b> only synchronize evaluations from published ' .
         'calendars if the <b>development mode</b> setting is disabled.</p>';
-$string['synchronize_schedules'] = 'Synchronize Schedules';
-$string['synchronize_last_updated_evaluations'] = 'Synchronize Last Updated Evaluations';
-$string['synchronized_nothing'] = 'Nothing to Synchronize';
-$string['synchronized_schedules'] = 'Schedules Synchronized';
-$string['synchronized_evaluations'] = 'Evaluations Synchronized';
-$string['synchronized_all_evaluations'] = 'All Evaluations Synchronized';
+$string['synchronize_schedules'] = 'Synchronize schedules';
+$string['synchronize_last_updated_evaluations'] = 'Synchronize last updated evaluations';
+$string['synchronize_all_evaluations'] = 'Synchronize all evaluations';
+$string['synchronized_schedules'] = 'Synchronized Schedules';
+$string['synchronized_last_updated_evaluations'] = 'Synchronized Last Updated Evaluations';
+$string['synchronized_all_evaluations'] = 'Synchronized All Evaluations';
+$string['cleaned_evaluations'] = 'Cleaned Evaluations';
+$string['nothing_to_synchronize'] = 'Nothing to Synchronize';
+$string['nothing_to_clean'] = 'Nothing to Clean';
 //
 $string['schedules'] = 'Schedules';
 $string['last_updated_evaluations'] = 'Last updated evaluations';
 $string['all_evaluations'] = 'All evaluations';
+$string['clean_evaluations'] = 'Clean evaluations';
+$string['select_task'] = 'Choose task';
 $string['inserts'] = 'Inserts';
 $string['cleaned'] = 'Cleaned';
 $string['updates'] = 'Updates';

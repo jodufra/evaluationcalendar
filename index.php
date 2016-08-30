@@ -52,6 +52,9 @@ switch ($section) {
                 case 'schedules':
                     $synchronize_form_result = $evaluation_calendar->synchronize_schedules();
                     break;
+                case 'clean_evaluations':
+                    $synchronize_form_result = $evaluation_calendar->clean_evaluation_calendars();
+                    break;
                 default:
                     $synchronize_form_result = '';
                     break;

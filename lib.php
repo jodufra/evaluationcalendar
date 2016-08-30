@@ -109,18 +109,21 @@ class local_evaluationcalendar_synchronize_form extends moodleform {
         // information
         $mform->addElement('static', '', '', get_string('synchronize_info', 'local_evaluationcalendar'));
 
-        // radio buttons
-        $requestTypes = array();
-        $string = get_string('schedules', 'local_evaluationcalendar');
-        $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'schedules');
-        $string = get_string('last_updated_evaluations', 'local_evaluationcalendar');
-        $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'last_updated_evaluations');
-        $string = get_string('all_evaluations', 'local_evaluationcalendar');
-        $requestTypes[] = $mform->createElement('radio', 'synchronize', '', $string, 'all_evaluations');
-        $string = get_string('synchronize', 'local_evaluationcalendar');
-        $mform->addGroup($requestTypes, 'g_synchronize', $string, null, false);
-        $mform->addHelpButton('g_synchronize', 'synchronize', 'local_evaluationcalendar');
-        $mform->addRule('g_synchronize', get_string('error'), 'required');
+        // options
+        $types = [];
+        $string = get_string('synchronize_schedules', 'local_evaluationcalendar');
+        $types['schedules'] = $string;
+        $string = get_string('synchronize_last_updated_evaluations', 'local_evaluationcalendar');
+        $types['last_updated_evaluations'] = $string;
+        $string = get_string('synchronize_all_evaluations', 'local_evaluationcalendar');
+        $types['all_evaluations'] = $string;
+        $string = get_string('clean_evaluations', 'local_evaluationcalendar');
+        $types['clean_evaluations'] = $string;
+
+        $string = get_string('select_task', 'local_evaluationcalendar');
+        $mform->addElement('select', 'synchronize', $string, $types);
+        $mform->addHelpButton('synchronize', 'synchronize', 'local_evaluationcalendar');
+        $mform->addRule('synchronize', get_string('error'), 'required');
         $mform->setDefault('synchronize', 'schedules');
         // submit button
         $string = get_string('submit', 'local_evaluationcalendar');
@@ -430,10 +433,11 @@ class local_evaluationcalendar {
         $records = array();
         foreach ($schedules as $schedule) {
             // check if schedule belongs to the correct school year
-            if(strcmp($school_year, $schedule->get_school_year())){$log = new stdClass();
+            if (strcmp($school_year, $schedule->get_school_year())) {
+                $log = new stdClass();
                 $log->type = 'Error';
                 $log->message = 'Wrong school year.';
-                $log->params = ['school_year'=> $school_year,'schedule_school_year'=> $schedule->get_school_year()];
+                $log->params = ['school_year' => $school_year, 'schedule_school_year' => $schedule->get_school_year()];
                 $report->logs[] = $log;
                 continue;
             }
@@ -509,8 +513,8 @@ class local_evaluationcalendar {
                 $result .= get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . ")";
                 $result .= "</div>";
             } else {
-                $result = '<div class=\'alert alert-success\'>';
-                $result .= '<b>' . get_string('synchronized_nothing', 'local_evaluationcalendar') . '</b>';
+                $result = '<div class=\'alert\'>';
+                $result .= '<b>' . get_string('nothing_to_synchronize', 'local_evaluationcalendar') . '</b>';
                 $result .= '</div>';
             }
             return $result;
@@ -875,8 +879,8 @@ class local_evaluationcalendar {
                 $result .= " (" . get_string('deleted', 'local_evaluationcalendar') . ": " . $report->deleted . "))";
                 $result .= "</div>";
             } else {
-                $result = '<div class=\'alert alert-success\'>';
-                $result .= '<b>' . get_string('synchronized_nothing', 'local_evaluationcalendar') . '</b>';
+                $result = '<div class=\'alert\'>';
+                $result .= '<b>' . get_string('nothing_to_synchronize', 'local_evaluationcalendar') . '</b>';
                 $result .= '</div>';
             }
             return $result;
@@ -928,6 +932,86 @@ class local_evaluationcalendar {
             $calendar_event->timeduration = $timestamp_end - $timestamp_start;
         }
         return $calendar_event;
+    }
+
+    /**
+     * @return object|string
+     */
+    function clean_evaluation_calendars() {
+        // set date range depending on the optional param
+        $date_epoch = new DateTime('1970-01-01 00:00:01');
+        $date_now = new DateTime();
+
+        // set school year
+        $school_year = local_evaluationcalendar_config::Instance()->school_year;
+
+        // instantiate the report object
+        $report = new stdClass();
+        $report->task = 'clean_evaluations';
+        $report->inserts = 0;
+        $report->updates = 0;
+        $report->cleaned = 0;
+        $report->deleted = 0;
+        $report->errors = 0;
+        $report->finished = false;
+        $report->synchronization_date = $date_now;
+        $report->logs = [];
+
+        // we create an object with all the calendars api data
+        $api_map = new stdClass();
+
+        // there are two big groups of data we need to retrieve, the first is the recent published calendars and all its
+        // evaluations, the other is the recent updated evaluations from published calendars
+        // first we get all published calendars
+        $api_map->calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now, $school_year);
+        $api_map->evaluations = [];
+        foreach ($api_map->calendars as $calendar) {
+            $evaluations = $this->api_interface->get_evaluations_by_calendar($calendar->get_id());
+            $api_map->evaluations = array_merge($api_map->evaluations, $evaluations);
+        }
+
+        $assoc_evaluations = [];
+        foreach ($api_map->evaluations as $evaluation) {
+            $assoc_evaluations[$evaluation->get_id()] = $evaluation;
+        }
+
+        $ec_events = local_evaluationcalendar_event::read_all();
+        $to_clean = [];
+        foreach ($ec_events as $ec_event) {
+            $evaluation_id = $ec_event->evaluationid;
+            if (!isset($assoc_evaluations[$evaluation_id])) {
+                $ids = [];
+                foreach ($ec_events as $key => $event) {
+                    if (strcmp($event->evaluationid, $evaluation_id) == 0) {
+                        $ids[$event->id] = $event->id;
+                    }
+                }
+                $to_clean = array_merge($to_clean, $ids);
+            }
+        }
+        foreach ($to_clean as $id) {
+            if ($ec_events[$id]->delete(true)) {
+                $report->cleaned++;
+            } else {
+                $report->errors++;
+            }
+        }
+
+        if ($this->render_html) {
+            if ($report->cleaned || $report->errors) {
+                $result = "<div class='alert alert-success'>";
+                $result .= "<b>" . get_string('cleaned_evaluations', 'local_evaluationcalendar') . "</b>";
+                $result .= " (" . get_string('cleaned', 'local_evaluationcalendar') . ": " . $report->cleaned . ", ";
+                $result .= get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . ")";
+                $result .= "</div>";
+            } else {
+                $result = '<div class=\'alert\'>';
+                $result .= '<b>' . get_string('nothing_to_clean', 'local_evaluationcalendar') . '</b>';
+                $result .= '</div>';
+            }
+            return $result;
+        }
+        return $report;
     }
 
     /**
@@ -1061,7 +1145,8 @@ class local_evaluationcalendar_api_interface {
      * @param string   $sort           (optional) Allows sorting the results by attribute
      * @return \local_evaluationcalendar\models\calendar[]
      */
-    function get_calendars_published_updated($datetime_start, $datetime_end, $school_year, $q = null, $fields = null, $sort = null) {
+    function get_calendars_published_updated($datetime_start, $datetime_end, $school_year, $q = null, $fields = null,
+            $sort = null) {
         $arguments = array();
         if (!local_evaluationcalendar_config::Instance()->development_mode) {
             $arguments['estado'] = 'PUBLICADO';
@@ -1557,6 +1642,21 @@ class local_evaluationcalendar_event {
      */
     public function properties() {
         return clone($this->properties);
+    }
+
+    /**
+     * Retrieves and returns all local_evaluationcalendar_event
+     *
+     * @return local_evaluationcalendar_event[]
+     */
+    public static function read_all() {
+        global $DB;
+
+        $events = $DB->get_records('evaluationcalendar_event');
+        foreach ($events as $key => $event) {
+            $events[$key] = new local_evaluationcalendar_event($event);
+        }
+        return $events;
     }
 
     /**
