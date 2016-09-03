@@ -35,18 +35,6 @@ class api_configuration {
      */
     private static $_defaultConfiguration = null;
     /**
-     * Associate array to store API key(s)
-     *
-     * @var string[]
-     */
-    protected $apiKeys = array();
-    /**
-     * Associate array to store API prefix (e.g. Bearer)
-     *
-     * @var string[]
-     */
-    protected $apiKeyPrefixes = array();
-    /**
      * The default headers
      *
      * @var string[]
@@ -95,50 +83,6 @@ class api_configuration {
      */
     public static function setDefaultConfiguration(api_configuration $config) {
         self::$_defaultConfiguration = $config;
-    }
-
-    /**
-     * Sets API key
-     *
-     * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     * @param string $key              API key or token
-     * @return api_configuration
-     */
-    public function setApiKey($apiKeyIdentifier, $key) {
-        $this->apiKeys[$apiKeyIdentifier] = $key;
-        return $this;
-    }
-
-    /**
-     * Gets API key
-     *
-     * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     * @return string API key or token
-     */
-    public function getApiKey($apiKeyIdentifier) {
-        return isset($this->apiKeys[$apiKeyIdentifier]) ? $this->apiKeys[$apiKeyIdentifier] : null;
-    }
-
-    /**
-     * Sets the prefix for API key (e.g. Bearer)
-     *
-     * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     * @param string $prefix           API key prefix, e.g. Bearer
-     * @return api_configuration
-     */
-    public function setApiKeyPrefix($apiKeyIdentifier, $prefix) {
-        $this->apiKeyPrefixes[$apiKeyIdentifier] = $prefix;
-        return $this;
-    }
-
-    /**
-     * Gets API key prefix
-     *
-     * @param string $apiKeyIdentifier API key identifier (authentication scheme)
-     * @return string
-     */
-    public function getApiKeyPrefix($apiKeyIdentifier) {
-        return isset($this->apiKeyPrefixes[$apiKeyIdentifier]) ? $this->apiKeyPrefixes[$apiKeyIdentifier] : null;
     }
 
     /**
@@ -210,10 +154,11 @@ class api_configuration {
      *
      * @param integer $seconds Number of seconds before timing out [set to 0 for no timeout]
      * @return api_configuration
+     * @throws \coding_exception
      */
     public function setCurlTimeout($seconds) {
         if (!is_numeric($seconds) || $seconds < 0) {
-            throw new \InvalidArgumentException('Timeout value must be numeric and a non-negative number.');
+            throw new \coding_exception('Timeout value must be numeric and a non-negative number.');
         }
 
         $this->curlTimeout = $seconds;

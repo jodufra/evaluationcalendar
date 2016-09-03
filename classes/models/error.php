@@ -36,7 +36,8 @@ class error extends base_model {
      */
     static $types = array(
             'status_code' => 'int',
-            'message' => 'string'
+            'message' => 'string',
+            'description' => 'string'
     );
 
     /**
@@ -45,8 +46,9 @@ class error extends base_model {
      * @var string[]
      */
     static $attributeMap = array(
-            'status_code' => 'statusCode',
-            'message' => 'message'
+            'status_code' => 'code',
+            'message' => 'message',
+            'description' => 'description'
     );
 
     /**
@@ -56,7 +58,8 @@ class error extends base_model {
      */
     static $setters = array(
             'status_code' => 'set_status_code',
-            'message' => 'set_message'
+            'message' => 'set_message',
+            'description' => 'set_description'
     );
 
     /**
@@ -66,7 +69,8 @@ class error extends base_model {
      */
     static $getters = array(
             'status_code' => 'get_status_code',
-            'message' => 'get_message'
+            'message' => 'get_message',
+            'description' => 'get_description'
     );
 
     /**
@@ -77,11 +81,18 @@ class error extends base_model {
     protected $status_code;
 
     /**
-     * $message Error description
+     * $message Error message
      *
      * @var string
      */
     protected $message;
+
+    /**
+     * $message Error more detailed message
+     *
+     * @var string
+     */
+    protected $description;
 
     /**
      * Constructor
@@ -93,6 +104,7 @@ class error extends base_model {
         if ($data != null) {
             $this->status_code = $data["status_code"];
             $this->message = $data["message"];
+            $this->description = $data["description"];
         }
     }
 
@@ -159,5 +171,20 @@ class error extends base_model {
     public function set_message($message) {
         $this->message = $message;
     }
+
+    /**
+     * @return string get Description
+     */
+    public function get_description() {
+        return $this->description;
+    }
+
+    /**
+     * @param string $description
+     */
+    public function set_description($description) {
+        $this->description = $description;
+    }
+
 
 }

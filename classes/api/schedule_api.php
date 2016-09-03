@@ -92,7 +92,7 @@ class schedule_api extends base_api {
         // make the API Call
         try {
             list($response, $statusCode, $httpHeader) =
-                    parent::call_api_client('', $queryParams, 'string', api_client::$GET, 'text/html; charset=' . $encoding);
+                    parent::call_api_client('', $queryParams, 'string', api_client::$GET, 'text/csv; charset=' . $encoding);
 
             // convert encodings
             if (strcmp('UTF-8', $encoding) !== 0) {

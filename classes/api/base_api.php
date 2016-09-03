@@ -138,7 +138,7 @@ class base_api {
                 if (is_string($response)) {
                     $data = $response;
                 } else {
-                    $data = api_object_serializer::deserialize($response, self::$_error_model, null);
+                    $data = api_object_serializer::deserialize($response->fault, self::$_error_model, null);
                 }
                 $e->setResponseObject($data);
             } else {

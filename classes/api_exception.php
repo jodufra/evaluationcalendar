@@ -68,17 +68,7 @@ class api_exception extends \moodle_exception {
      * @param mixed  $responseBody    HTTP body of the server response either as Json or string
      */
     public function __construct($message = "", $code = 0, $responseHeaders = null, $responseBody = null) {
-        $a = null;
-        if (!is_null($responseHeaders) || !is_null($responseBody)) {
-            $a = new \stdClass();
-            if (!empty($responseHeaders)) {
-                $a->headers = $responseHeaders;
-            }
-            if (!empty($responseBody)) {
-                $a->body = $responseBody;
-            }
-        }
-        parent::__construct($code, 'local_evaluationcalendar', new \moodle_url('/local/evaluationcalendar/'), $a, $message);
+        parent::__construct($code, 'local_evaluationcalendar', new \moodle_url('/local/evaluationcalendar/'), null, $message);
         $this->originalMessage = $message;
         $this->responseHeaders = $responseHeaders;
         $this->responseBody = $responseBody;
@@ -128,5 +118,6 @@ class api_exception extends \moodle_exception {
      */
     public function setResponseObject($obj) {
         $this->responseObject = $obj;
+        $this->a = $obj;
     }
 }

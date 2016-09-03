@@ -178,11 +178,6 @@ class api_client {
             throw new api_exception("API call to $url timed out", 0, null, null);
         } elseif ($http_code >= 200 && $http_code <= 299) {
             if ($responseType == 'string') {
-                foreach ($headerParams as $param) {
-                    if (strpos($param, 'ISO-8859-1') !== false) {
-                        break;
-                    }
-                }
                 return array($http_body, $http_code, $http_header);
             }
             $data = json_last_error() > 0 ? $http_body : json_decode($http_body);

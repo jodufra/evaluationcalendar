@@ -340,7 +340,7 @@ class local_evaluationcalendar {
      * @throws \local_evaluationcalendar\api_exception
      * @throws moodle_exception
      */
-    function verify_api_interface_single_request($type) {
+    private function verify_api_interface_single_request($type) {
 
         if (!array_key_exists($type, self::$api_interface_map)) {
             throw new coding_exception('Must select a valid api interface request type.');
@@ -439,6 +439,7 @@ class local_evaluationcalendar {
                 $log->message = 'Wrong school year.';
                 $log->params = ['school_year' => $school_year, 'schedule_school_year' => $schedule->get_school_year()];
                 $report->logs[] = $log;
+                $report->errors++;
                 continue;
             }
 
@@ -469,7 +470,7 @@ class local_evaluationcalendar {
             // get groups and check if any
             $groups = [];
             foreach ($courses as $course) {
-                $query = 'courseid = ' . $course->id . ' AND idnumber LIKE \'%' . $subject_shift . '%\'';
+                $query = 'courseid = ' . $course->id . ' AND idnumber LIKE \'' . $subject_shift . '\'';
                 $groups = array_merge($groups, $DB->get_records_select('groups', $query));
             }
             if (empty($groups)) {
@@ -489,11 +490,12 @@ class local_evaluationcalendar {
                 $record->courseid = $group->courseid;
                 $record->weekday = $schedule->get_week_day();
                 $record->timestart = $schedule->get_time_start();
-                $records[] = $record;
+                $key = $record->courseid . "_" . $record->groupid . "_" . $record->weekday . "_" . $record->timestart;
+                $records[$key] = $record;
             }
         }
 
-        // it would be performance stressing to insert them one by one, so we insert them all at once... if any, of course
+        // it would be performance stressing to insert them one by one, so we insert them all at once
         $count = count($records);
         if ($count > 0) {
             local_evaluationcalendar_schedule::insert_records($records);
@@ -652,7 +654,7 @@ class local_evaluationcalendar {
         foreach ($api_map->evaluations as $evaluation) {
             // this array will contain the tasks that need to be executed for each evaluation
             $tasks = new stdClass();
-            $tasks->dirty_event_keys = array(); // array keys of $ec_events that need cleaning
+            $tasks->dirty_event_ids = array(); // array ids of $ec_events that need cleaning
             $tasks->dirty_calendar_ids = array(); // array of ids from calendar events that need cleaning
             $tasks->insert_references = array(); // array of objects, each containing a courseid and groupid
             $tasks->update_calendar_ids = array(); // array of ids from calendar events that will be updated
@@ -710,7 +712,7 @@ class local_evaluationcalendar {
                     $calendar_events[$calendar_event->id] = $calendar_event;
                 } catch (Exception $e) {
                     // means the calendar event was deleted outside this plugin
-                    $tasks->dirty_event_keys[] = $ec_event_key;
+                    $tasks->dirty_event_ids[] = $ec_event_key;
                 }
             }
 
@@ -725,9 +727,9 @@ class local_evaluationcalendar {
             foreach ($tasks->dirty_calendar_ids as $key => $calendar_event_key) {
                 // since we are going to delete the calendar event we need to delete the related evaluationcalendar event, if any.
                 // so we get the array key to use in the clean evaluationcalendar_events stage
-                foreach ($ec_events as $ec_event_key => $ec_event) {
+                foreach ($ec_events as $ec_event_id => $ec_event) {
                     if ($calendar_events[$calendar_event_key]->id == $ec_event->eventid) {
-                        $tasks->dirty_event_keys[] = $ec_event_key;
+                        $tasks->dirty_event_ids[] = $ec_event_id;
                         break;
                     }
                 }
@@ -737,7 +739,7 @@ class local_evaluationcalendar {
             }
 
             // clean the evaluationcalendar_events
-            foreach ($tasks->dirty_event_keys as $key => $ec_event_key) {
+            foreach ($tasks->dirty_event_ids as $key => $ec_event_key) {
                 $ec_events[$ec_event_key]->delete();
                 unset($ec_events[$ec_event_key]);
                 $report->cleaned++;
@@ -763,14 +765,14 @@ class local_evaluationcalendar {
                 }
             }
             foreach ($courses as $course_id => $course) {
-                $previously_inserted = false;
+                $inserted_by_schedule = false;
                 foreach ($schedules as $schedule) {
                     if ($schedule->courseid == $course_id) {
-                        $previously_inserted = true;
+                        $inserted_by_schedule = true;
                         break;
                     }
                 }
-                if ($previously_inserted) {
+                if ($inserted_by_schedule) {
                     continue;
                 }
 
@@ -797,10 +799,10 @@ class local_evaluationcalendar {
                 $calendar_event = new calendar_event();
                 $calendar_event->id = 0; // default value
                 $calendar_event->format = 1; // default value
-                $calendar_event->courseid = $course->id;
-                $calendar_event->groupid = $group->id;
                 $calendar_event->userid = 0;  // default value
                 $calendar_event->modulename = 0;  // default value
+                $calendar_event->courseid = $course->id;
+                $calendar_event->groupid = $group->id;
                 $calendar_event->eventtype = $calendar_event->groupid == 0 ? "course" : "group";
                 // call to the function responsible to edit the calendar
                 $calendar_event = $this->edit_calendar_event($api_map, $evaluation, $calendar_event, $course, $group);
@@ -957,36 +959,24 @@ class local_evaluationcalendar {
         $report->synchronization_date = $date_now;
         $report->logs = [];
 
-        // we create an object with all the calendars api data
-        $api_map = new stdClass();
-
-        // there are two big groups of data we need to retrieve, the first is the recent published calendars and all its
-        // evaluations, the other is the recent updated evaluations from published calendars
-        // first we get all published calendars
-        $api_map->calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now, $school_year);
-        $api_map->evaluations = [];
-        foreach ($api_map->calendars as $calendar) {
-            $evaluations = $this->api_interface->get_evaluations_by_calendar($calendar->get_id());
-            $api_map->evaluations = array_merge($api_map->evaluations, $evaluations);
+        // first we get all published calendars and then the related evaluations
+        $calendars = $this->api_interface->get_calendars_published_updated($date_epoch, $date_now, $school_year);
+        $retrieved_evaluations = [];
+        foreach ($calendars as $calendar) {
+            $calendar_evaluations = $this->api_interface->get_evaluations_by_calendar($calendar->get_id());
+            $retrieved_evaluations = array_merge($retrieved_evaluations, $calendar_evaluations);
         }
 
-        $assoc_evaluations = [];
-        foreach ($api_map->evaluations as $evaluation) {
-            $assoc_evaluations[$evaluation->get_id()] = $evaluation;
+        $evaluations = [];
+        foreach ($retrieved_evaluations as $evaluation) {
+            $evaluations[$evaluation->get_id()] = $evaluation;
         }
 
         $ec_events = local_evaluationcalendar_event::read_all();
         $to_clean = [];
-        foreach ($ec_events as $ec_event) {
-            $evaluation_id = $ec_event->evaluationid;
-            if (!isset($assoc_evaluations[$evaluation_id])) {
-                $ids = [];
-                foreach ($ec_events as $key => $event) {
-                    if (strcmp($event->evaluationid, $evaluation_id) == 0) {
-                        $ids[$event->id] = $event->id;
-                    }
-                }
-                $to_clean = array_merge($to_clean, $ids);
+        foreach ($ec_events as $id => $ec_event) {
+            if (!isset($evaluations[$ec_event->evaluationid])) {
+                $to_clean[$id] = $id;
             }
         }
         foreach ($to_clean as $id) {
