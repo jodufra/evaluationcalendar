@@ -46,6 +46,6 @@ class clean_evaluations_task extends \core\task\scheduled_task {
         require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 
         $evaluation_calendar = new \local_evaluationcalendar();
-        //$evaluation_calendar->clean_evaluations();
+        $evaluation_calendar->clean_evaluation_calendars();
     }
 }

@@ -21,7 +21,8 @@
  */
 
 defined('MOODLE_INTERNAL') || die();
-
+global $CFG;
+require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 /**
  * This is called at the beginning of the uninstallation process to give the plugin
  * a chance to clean-up the created events
@@ -29,6 +30,6 @@ defined('MOODLE_INTERNAL') || die();
  * @return bool true if success
  */
 function local_evaluationcalendar_uninstall() {
-
-    return local_evaluationcalendar_event::delete_all_events();
+    local_evaluationcalendar_event::delete_all_events();
+    return true;
 }

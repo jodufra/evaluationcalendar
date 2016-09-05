@@ -30,6 +30,7 @@ require_once($CFG->dirroot . '/local/evaluationcalendar/lib.php');
 admin_externalpage_setup('local_evaluationcalendar');
 
 $moodle_url = new moodle_url('/local/evaluationcalendar/');
+
 $section_form = new local_evaluationcalendar_section_form($moodle_url, optional_param('section', '', PARAM_PATH));
 $section = $section_form->get_section();
 $moodle_url->param('section', $section);
@@ -59,7 +60,6 @@ switch ($section) {
                     $synchronize_form_result = '';
                     break;
             }
-            // To show the report
             echo $synchronize_form_result;
         }
         $synchronize_form->display();
@@ -81,7 +81,13 @@ switch ($section) {
         $config_form->display();
         break;
     case 'reports':
-        echo 'todo';
+        $report_id = optional_param('reportid', 0, PARAM_INT);
+        $reports_view = local_evaluationcalendar_reports_view::Instance($moodle_url);
+        if ($report_id > 0) {
+            echo $reports_view->report($report_id);
+        } else {
+            echo $reports_view->reports();
+        }
         break;
 }
 echo $OUTPUT->footer();

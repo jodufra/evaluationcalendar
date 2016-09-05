@@ -25,10 +25,10 @@ defined('MOODLE_INTERNAL') || die();
 // Full name of the plugin (used for diagnostics).
 $plugin->component = 'local_evaluationcalendar';
 // Declares the maturity level of this plugin version (MATURITY_ALPHA, MATURITY_BETA, MATURITY_RC or MATURITY_STABLE)
-$plugin->maturity = MATURITY_BETA;
+$plugin->maturity = MATURITY_RC;
 // Human readable version name that should help to identify each release of the plugin
-$plugin->release = 'v0.5-b0';
+$plugin->release = 'v1.0-rc1';
 // Requires this Moodle version.
 $plugin->requires = 2014051200;
 // The current module version (Date: YYYYMMDDXX).
-$plugin->version = 2016082800;
+$plugin->version = 2016091601;

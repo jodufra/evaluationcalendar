@@ -24,7 +24,7 @@ defined('MOODLE_INTERNAL') || die();
 require_once $CFG->libdir . '/formslib.php';
 
 /**
- * This plugin functions are separated by sections, and the visible section can be chosen by this non mooodleform form.
+ * This plugin views are separated by sections and this form allows the selection of the section.
  *
  * @category Class
  */
@@ -274,6 +274,151 @@ class local_evaluationcalendar_config_form extends moodleform {
 }
 
 /**
+ * This class is responsible to gather and show the reports
+ *
+ * @category Class
+ */
+class local_evaluationcalendar_reports_view {
+
+    /**
+     * @var local_evaluationcalendar_reports_view
+     */
+    private static $instance;
+
+    /**
+     * @var string Common date format used in this class
+     */
+    private $DATE_FORMAT = 'Y-m-d H:i:s';
+
+    /**
+     * @var local_evaluationcalendar_report[]
+     */
+    private $reports;
+
+    /**
+     * @var \moodle_url
+     */
+    private $moodle_url;
+
+    /**
+     * local_evaluationcalendar_reports_view constructor.
+     */
+    private function __construct() {
+        $this->reports = local_evaluationcalendar_report::read_all();
+    }
+
+    /**
+     * Gets singleton instance of local_evaluationcalendar_reports_view
+     *
+     * @param $moodle_url \moodle_url
+     * @return local_evaluationcalendar_reports_view
+     */
+    public static function Instance($moodle_url = null) {
+        if (!isset(local_evaluationcalendar_reports_view::$instance)) {
+            local_evaluationcalendar_reports_view::$instance = new local_evaluationcalendar_reports_view();
+        }
+        if (isset($moodle_url)) {
+            local_evaluationcalendar_reports_view::$instance->moodle_url = $moodle_url;
+        }
+        return local_evaluationcalendar_reports_view::$instance;
+    }
+
+    /**
+     * @return string
+     */
+    public function reports() {
+        if (count($this->reports) == 0) {
+            return get_string('no_reports_found', 'local_evaluationcalendar');
+        }
+
+        $result = '<h3>' . get_string('reports', 'local_evaluationcalendar') . '</h3>';
+
+        $table = new html_table();
+        $table->head = array('task', 'inserts', 'cleaned', 'updates', 'errors', 'deleted', 'date', 'details');
+        foreach ($table->head as $key => $value) {
+            $table->head[$key] = get_string($value, 'local_evaluationcalendar');
+        }
+        $details_string = get_string('details', 'local_evaluationcalendar');
+        foreach ($this->reports as $report) {
+            $data = [];
+            $data[] = get_string($report->task, 'local_evaluationcalendar');
+            $data[] = $report->inserts;
+            $data[] = $report->cleaned;
+            $data[] = $report->updates;
+            $data[] = $report->errors;
+            $data[] = $report->deleted;
+            $data[] = (new DateTime())->setTimestamp($report->timecreated)->format($this->DATE_FORMAT);
+            $id = $report->id;
+            $url = $this->moodle_url->out(true, array('reportid' => $id));
+            $data[] = '<a href="' . $url . '"> ' . $details_string . '</a>';
+            $table->data[] = $data;
+        }
+        $result .= html_writer::table($table);
+        return $result;
+    }
+
+    /**
+     * @param $id
+     * @return string
+     */
+    public function report($id) {
+        $go_back_url = $this->moodle_url->out(true, array('reportid' => 0));
+        $go_back_string = get_string('go_back', 'local_evaluationcalendar');
+        $go_back_link = '<a href="' . $go_back_url . '"> ' . $go_back_string . '</a>';
+        if (!isset($this->reports[$id])) {
+            $not_available_string = get_string('report_not_available', 'local_evaluationcalendar');
+            return $not_available_string . " " . $go_back_link;
+        }
+
+        $report = $this->reports[$id];
+        $result = '<h3>' . get_string('report', 'local_evaluationcalendar') . ': '
+                . get_string($report->task, 'local_evaluationcalendar') . '</h3>';
+
+        $table = new html_table();
+        $table->head = array('inserts', 'cleaned', 'updates', 'errors', 'deleted', 'date', 'go_back');
+        foreach ($table->head as $key => $value) {
+            $table->head[$key] = get_string($value, 'local_evaluationcalendar');
+        }
+        $data = [];
+        $data[] = $report->inserts;
+        $data[] = $report->cleaned;
+        $data[] = $report->updates;
+        $data[] = $report->errors;
+        $data[] = $report->deleted;
+        $data[] = (new DateTime())->setTimestamp($report->timecreated)->format($this->DATE_FORMAT);
+        $data[] = $go_back_link;
+        $table->data[] = $data;
+        $result .= html_writer::table($table);
+
+        $result .= '<br>';
+
+        $table = new html_table();
+        $table->head = array(get_string('logs', 'local_evaluationcalendar'), '', '');
+        foreach ($report->logs as $log) {
+            $tr = new html_table_row();
+            $tr->attributes['class'] = strcmp("Error", $log->type) ? 'danger' : strcmp("Warning", $log->type) ? 'warning' : 'info';
+
+            $td = new html_table_cell();
+            $td->text = $log->type;
+            $tr->cells[] = $td;
+
+            $td = new html_table_cell();
+            $td->text = $log->message;
+            $tr->cells[] = $td;
+
+            $td = new html_table_cell();
+            $td->text = count($log->params) > 0 ? json_encode($log->params, JSON_PRETTY_PRINT) : '';
+            $tr->cells[] = $td;
+
+            $table->data[] = $tr;
+        }
+        $result .= html_writer::table($table);
+
+        return $result;
+    }
+}
+
+/**
  * It's the container of the most features this plugin has to offer.
  * If you wish to use the plugin, it's in this class you should look first.
  *
@@ -402,14 +547,13 @@ class local_evaluationcalendar {
 
         // instantiate the report object
         $report = new stdClass();
-        $report->task = 'schedules';
+        $report->task = 'synchronize_schedules';
         $report->inserts = 0;
         $report->updates = 0;
         $report->cleaned = 0;
         $report->deleted = 0;
         $report->errors = 0;
         $report->finished = false;
-        $report->synchronization_date = new DateTime();
         $report->logs = [];
 
         $schedules = $this->api_interface->get_schedules();
@@ -505,12 +649,12 @@ class local_evaluationcalendar {
         // after the synchronization
         // set the finished flag, save and return the report
         $report->finished = true;
-        /** TODO save report */
+        $report = local_evaluationcalendar_report::create($report);
 
         if ($this->render_html) {
             if ($report->inserts || $report->errors) {
                 $result = "<div class='alert alert-success'>";
-                $result .= "<b>" . get_string('synchronized_' . $report->task, 'local_evaluationcalendar') . "</b>";
+                $result .= "<b>" . get_string('synchronized_schedules', 'local_evaluationcalendar') . "</b>";
                 $result .= " (" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts . ", ";
                 $result .= get_string('errors', 'local_evaluationcalendar') . ": " . $report->errors . ")";
                 $result .= "</div>";
@@ -559,14 +703,13 @@ class local_evaluationcalendar {
 
         // instantiate the report object
         $report = new stdClass();
-        $report->task = $update_all ? 'all_evaluations' : 'last_updated_evaluations';
+        $report->task = $update_all ? 'synchronize_all_evaluations' : 'synchronize_last_updated_evaluations';
         $report->inserts = 0;
         $report->updates = 0;
         $report->cleaned = 0;
         $report->deleted = 0;
         $report->errors = 0;
         $report->finished = false;
-        $report->synchronization_date = $date_now;
         $report->logs = [];
 
         // we create an object with all the calendars api data
@@ -868,12 +1011,13 @@ class local_evaluationcalendar {
         // after the synchronization
         // set the finished flag, save and return the report
         $report->finished = true;
-        /** TODO save report */
+        $report = local_evaluationcalendar_report::create($report);
 
         if ($this->render_html) {
             if ($report->inserts || $report->cleaned || $report->updates || $report->errors || $report->deleted) {
+                $message_key = $update_all ? 'synchronized_all_evaluations' : 'synchronized_last_updated_evaluations';
                 $result = "<div class='alert alert-success'>";
-                $result .= "<b>" . get_string('synchronized_' . $report->task, 'local_evaluationcalendar') . "</b>";
+                $result .= "<b>" . get_string($message_key, 'local_evaluationcalendar') . "</b>";
                 $result .= " (" . get_string('inserts', 'local_evaluationcalendar') . ": " . $report->inserts;
                 $result .= " (" . get_string('cleaned', 'local_evaluationcalendar') . ": " . $report->cleaned . "), ";
                 $result .= get_string('updates', 'local_evaluationcalendar') . ": " . $report->updates . ", ";
@@ -956,7 +1100,6 @@ class local_evaluationcalendar {
         $report->deleted = 0;
         $report->errors = 0;
         $report->finished = false;
-        $report->synchronization_date = $date_now;
         $report->logs = [];
 
         // first we get all published calendars and then the related evaluations
@@ -986,6 +1129,9 @@ class local_evaluationcalendar {
                 $report->errors++;
             }
         }
+
+        $report->finished = true;
+        $report = local_evaluationcalendar_report::create($report);
 
         if ($this->render_html) {
             if ($report->cleaned || $report->errors) {
@@ -1061,10 +1207,8 @@ class local_evaluationcalendar {
      */
     function restore_config_to_defaults() {
         local_evaluationcalendar_config::Instance()->restore_defaults();
-        if ($this->render_html) {
-            return '<b style=\'color:#4CAF50\'>' . get_string('config_defaults_restored', 'local_evaluationcalendar') . '</b>';
-        }
-        return true;
+        $message = get_string('config_defaults_restored', 'local_evaluationcalendar');
+        return $this->render_html ? ('<b style="color:#4CAF50">' . $message . '</b>') : $message;
     }
 }
 
@@ -1511,7 +1655,7 @@ class local_evaluationcalendar_config {
 
 /**
  * Manage the plugin events table
- * This class provides the required functionality in order to manage the local_evaluationcalendar_events.
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_event.
  * The local_evaluationcalendar_event determines the relation between the calendar_event and the "Calendars Web API"
  * evaluations.
  *
@@ -1703,7 +1847,7 @@ class local_evaluationcalendar_event {
             return true;
         }
 
-        $DB->delete_records('evaluationcalendar_event', array('development' => 1));
+        $DB->delete_records('evaluationcalendar_event');
 
         foreach ($records as $record) {
             $calendar_event = calendar_event::load((int) $record->eventid);
@@ -1791,7 +1935,7 @@ class local_evaluationcalendar_event {
 
 /**
  * Manage the plugin schedules table
- * This class provides the required functionality in order to manage the local_evaluationcalendar_schedules.
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_schedule.
  *
  * @category Class
  * @property int    $id                 The id within the schedule table
@@ -1913,3 +2057,165 @@ class local_evaluationcalendar_schedule {
         return !empty($this->properties->{$key});
     }
 }
+
+/**
+ * Manage the plugin reports table
+ * This class provides the required functionality in order to manage the local_evaluationcalendar_report.
+ *
+ * @category Class
+ * @property int    $id                            The id within the reports table
+ * @property string $task                          Task that created the report
+ * @property int    $inserts                       Count of inserted elements
+ * @property int    $cleaned                       Count of cleaned elements
+ * @property int    $updates                       Count of updated elements
+ * @property int    $errors                        Count of errors elements
+ * @property int    $deleted                       Count of deleted elements
+ * @property int    $timecreated                   The time the report was created
+ * @property array  $logs                          The list of all logs
+ */
+class local_evaluationcalendar_report {
+
+    /** @var array An object containing the event properties can be accessed via the __get/set methods */
+    protected $properties = null;
+
+    /**
+     * Instantiates a new local_evaluationcalendar_report and optionally populates its properties with the data provided
+     *
+     * @param stdClass $data Optional. An object containing the properties to for an event
+     */
+    public function __construct($data = null) {
+        // First convert to object if it is not already (should either be object or assoc array)
+        if (!is_object($data)) {
+            $data = (object) $data;
+        }
+        if (!isset($data->id)) {
+            $data->id = 0;
+        }
+        if (!isset($data->task)) {
+            $data->task = "";
+        }
+        if (!isset($data->inserts)) {
+            $data->inserts = 0;
+        }
+        if (!isset($data->cleaned)) {
+            $data->cleaned = 0;
+        }
+        if (!isset($data->updates)) {
+            $data->updated = 0;
+        }
+        if (!isset($data->errors)) {
+            $data->errors = 0;
+        }
+        if (!isset($data->deleted)) {
+            $data->deleted = 0;
+        }
+        if (!isset($data->logs)) {
+            $data->logs = array();
+        } elseif (is_string($data->logs)) {
+            $data->logs = json_decode($data->logs);
+        }
+        $this->properties = $data;
+    }
+
+    /**
+     * Read all evaluationcalendar_report from the database
+     *
+     * @return local_evaluationcalendar_report[]
+     */
+    public static function read_all() {
+        global $DB;
+        $records = $DB->get_records('evaluationcalendar_report');
+        foreach ($records as $key => $record) {
+            $records[$key] = new local_evaluationcalendar_report($record);
+        }
+        return $records;
+    }
+
+    /**
+     * Inserts the new evaluationcalendar_report and removes the oldest if more than 50
+     *
+     * @param $properties
+     * @return bool|local_evaluationcalendar_report
+     * @throws coding_exception
+     */
+    public static function create($properties) {
+        global $DB, $CFG;
+        if (is_array($properties)) {
+            $properties = (object) $properties;
+        }
+        if (!is_object($properties)) {
+            throw new coding_exception('When creating a report, properties should be either an object or an assoc array');
+        }
+        $report = new local_evaluationcalendar_report($properties);
+        $report->timecreated = (new DateTime())->getTimestamp();
+
+        // encode logs to json
+        $insert_object = $report->properties;
+        $insert_object->logs = json_encode($insert_object->logs);
+        $report->id = $DB->insert_record('evaluationcalendar_report', $insert_object);
+
+        // remove excess of reports
+        $count = $DB->count_records('evaluationcalendar_report') - 50;
+        for ($i = 0; $i < $count; $i++) {
+            $oldest_id = $DB->get_field_sql('SELECT MIN(id) FROM ' . $CFG->prefix . 'evaluationcalendar_report');
+            $DB->delete_records('evaluationcalendar_report', array("id" => $oldest_id));
+        }
+        return $report;
+    }
+
+    /**
+     * Deletes all evaluationcalendar_report from the database
+     *
+     * @return bool
+     */
+    public static function delete_all() {
+        global $DB;
+        return $DB->delete_records('evaluationcalendar_report');
+    }
+
+    /**
+     * Properties get method
+     * Attempts to call a get_$key method to return the property and falls over
+     * to return the raw property
+     *
+     * @param string $key property name
+     * @return mixed property value
+     * @throws coding_exception
+     */
+    public function __get($key) {
+        if (method_exists($this, 'get_' . $key)) {
+            return $this->{'get_' . $key}();
+        }
+        if (!isset($this->properties->{$key})) {
+            throw new coding_exception('Undefined property requested');
+        }
+        return $this->properties->{$key};
+    }
+
+    /**
+     * Properties set method
+     * Attempts to call a set_$key method if one exists otherwise falls back
+     * to simply set the property
+     *
+     * @param string $key   property name
+     * @param mixed  $value value of the property
+     */
+    public function __set($key, $value) {
+        if (method_exists($this, 'set_' . $key)) {
+            $this->{'set_' . $key}($value);
+        }
+        $this->properties->{$key} = $value;
+    }
+
+    /**
+     * PHP needs an isset method if you use the properties get method and
+     * still want empty calls to work
+     *
+     * @param string $key $key property name
+     * @return bool|mixed property value, false if property is not exist
+     */
+    public function __isset($key) {
+        return !empty($this->properties->{$key});
+    }
+}
+
