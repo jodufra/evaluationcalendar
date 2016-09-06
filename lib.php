@@ -632,6 +632,7 @@ class local_evaluationcalendar {
                 $record = new stdClass();
                 $record->groupid = $group->id;
                 $record->courseid = $group->courseid;
+                $record->weeks = implode(';', $schedule->get_week_numbers());
                 $record->weekday = $schedule->get_week_day();
                 $record->timestart = $schedule->get_time_start();
                 $key = $record->courseid . "_" . $record->groupid . "_" . $record->weekday . "_" . $record->timestart;
@@ -836,13 +837,17 @@ class local_evaluationcalendar {
             // retrieve schedules related to the courses and to this evaluation
             // get time variables to use later
             $date_start = new DateTime($evaluation->get_date_begin());
+            $weeknumber = (string) $date_start->format("W");
             $weekday = $date_start->format("N") + 1;
             $weekday = $weekday > 7 ? 1 : $weekday;
             $timestart = $date_start->format("G:i");
 
             $schedules = array();
             foreach ($api_map->schedules as $sch) {
-                if (isset($groups[$sch->groupid]) && $sch->weekday == $weekday && $sch->timestart == $timestart) {
+                $weeks = explode(';', $sch->weeks);
+                if (isset($groups[$sch->groupid]) && in_array($weeknumber, $weeks) && $sch->weekday == $weekday &&
+                        $sch->timestart == $timestart
+                ) {
                     $schedules[] = $sch;
                 }
             }
@@ -1941,6 +1946,7 @@ class local_evaluationcalendar_event {
  * @property int    $id                 The id within the schedule table
  * @property int    $courseid           The course id
  * @property int    $groupid            The group id
+ * @property string $weeks              The yearly weeks (1,2,3,14,15,16,20,21,22)
  * @property string $weekday            The number of the week day (1 = Sunday, 7 = Saturday)
  * @property string $timestart          The time the schedule starts in 24h format (ex "15:30")
  */
@@ -1968,6 +1974,9 @@ class local_evaluationcalendar_schedule {
         }
         if (empty($data->groupid)) {
             $data->groupid = 0;
+        }
+        if (empty($data->weeks)) {
+            $data->weeks = "";
         }
         if (empty($data->weekday)) {
             $data->weekday = "1";

@@ -41,7 +41,8 @@ class schedule extends base_model {
             "subject_code_abbr" => "int",
             "subject_designation_shift" => "string",
             "time_start" => "string",
-            "week_day" => "string"
+            "week_day" => "string",
+            "weeks" => "string"
     );
 
     /**
@@ -56,7 +57,8 @@ class schedule extends base_model {
             "subject_code_abbr" => "subject_code_abbr",
             "subject_designation_shift" => "subject_designation_shift",
             "time_start" => "time_start",
-            "week_day" => "week_day"
+            "week_day" => "week_day",
+            "weeks" => "weeks"
     );
 
     /**
@@ -71,7 +73,8 @@ class schedule extends base_model {
             "subject_code_abbr" => "set_subject_code_abbr",
             "subject_designation_shift" => "set_subject_designation_shift",
             "time_start" => "set_time_start",
-            "week_day" => "set_week_day"
+            "week_day" => "set_week_day",
+            "weeks" => "set_weeks"
     );
 
     /**
@@ -86,7 +89,8 @@ class schedule extends base_model {
             "subject_code_abbr" => "get_subject_code_abbr",
             "subject_designation_shift" => "get_subject_designation_shift",
             "time_start" => "get_time_start",
-            "week_day" => "get_week_day"
+            "week_day" => "get_week_day",
+            "weeks" => "get_weeks"
     );
 
     /**
@@ -123,6 +127,11 @@ class schedule extends base_model {
      * @var string
      */
     private $week_day;
+
+    /**
+     * @var string
+     */
+    private $weeks;
 
     /**
      * Constructor
@@ -274,6 +283,38 @@ class schedule extends base_model {
      */
     public function set_week_day($week_day) {
         $this->week_day = $week_day;
+    }
+
+    /**
+     * @return string get Weeks
+     */
+    public function get_weeks() {
+        return $this->weeks;
+    }
+
+    /**
+     * @param string $weeks
+     */
+    public function set_weeks($weeks) {
+        $this->weeks = $weeks;
+    }
+
+    /**
+     * @return array[] get Weeks in array of numbers
+     */
+    public function get_week_numbers() {
+        $wn = [];
+        $weeks = str_replace('S', '', str_replace(' ', '', $this->weeks));
+        $weeks = explode(',', $weeks);
+        foreach ($weeks as $week) {
+            $w = explode(':', $week);
+            if (count($w) > 1) {
+                $wn = array_merge($wn, range((int)$w[0], (int)$w[1]));
+            } else {
+                $wn[] = (int)$w[0];
+            }
+        }
+        return $wn;
     }
 
 }
